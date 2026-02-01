@@ -1,16 +1,11 @@
 [
   {
-    "origin": ["http://localhost:3000", "https://test.colater.com"],
-    "method": ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS"],
-    "responseHeader": [
-      "Content-Type",
-      "x-goog-upload-url",
-      "x-goog-upload-status",
-      "x-goog-upload-protocol",
-      "x-goog-upload-command",
-      "x-goog-upload-header-content-length",
-      "x-goog-upload-header-content-type",
-      "Authorization"
+    "origin": [
+      "https://colater.com",
+      "http://localhost:3000"
+    ],
+    "method": [
+      "GET"
     ],
     "maxAgeSeconds": 3600
   }
