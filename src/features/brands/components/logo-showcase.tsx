@@ -266,9 +266,13 @@ export const LogoShowcase = memo(function LogoShowcase({
             originalImg.src = proxyUrl;
 
             if (currentLogo.cropDetails) {
-                cropImageToContent(currentLogo.logoUrl, currentLogo.cropDetails).then(setCroppedLogoUrl);
+                cropImageToContent(currentLogo.logoUrl, currentLogo.cropDetails).then(setCroppedLogoUrl).catch(() => {
+                    // CORS or load failure — display original URL
+                });
             } else {
-                cropImageToContent(currentLogo.logoUrl).then(setCroppedLogoUrl);
+                cropImageToContent(currentLogo.logoUrl).then(setCroppedLogoUrl).catch(() => {
+                    // CORS or load failure — display original URL
+                });
             }
             // B&W sticker is now generated in a separate effect that depends on croppedLogoUrl
         }

@@ -24,7 +24,9 @@ const BrandListItem = ({ brand }: { brand: Brand }) => {
         if (brand.logoUrl) {
             import('@/lib/image-utils').then(({ cropImageToContent }) => {
                 if (brand.logoUrl) {
-                    cropImageToContent(brand.logoUrl).then(setCroppedLogoUrl);
+                    cropImageToContent(brand.logoUrl).then(setCroppedLogoUrl).catch(() => {
+                        // CORS or load failure — display original URL instead of crashing
+                    });
                 }
             });
         }

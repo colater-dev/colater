@@ -98,7 +98,7 @@ export async function cropImageToContent(
             return imageUrl;
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const img = new Image();
             // Set crossOrigin if not using data URI (for when we have cropDetails but no data URI)
             if (!isDataUri) {

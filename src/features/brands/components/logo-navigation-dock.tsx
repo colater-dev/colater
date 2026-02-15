@@ -26,7 +26,9 @@ const DockItem = memo(function DockItem({ logo, isActive, index, onLogoIndexChan
 
   useEffect(() => {
     if (logo.logoUrl) {
-      cropImageToContent(logo.logoUrl).then(setCroppedUrl);
+      cropImageToContent(logo.logoUrl).then(setCroppedUrl).catch(() => {
+        // CORS or load failure — display original URL
+      });
     }
   }, [logo.logoUrl]);
 

@@ -33,7 +33,9 @@ export const BrandApplications = memo(function BrandApplications({
 
     useEffect(() => {
         if (logoUrl) {
-            cropImageToContent(logoUrl).then(setCroppedLogoUrl);
+            cropImageToContent(logoUrl).then(setCroppedLogoUrl).catch(() => {
+                // CORS or load failure — display original URL
+            });
         }
         // Random rotation between 2 and 12 degrees (positive or negative)
         setRotationFront((Math.random() * 10 + 2) * (Math.random() > 0.5 ? 1 : -1));
