@@ -154,6 +154,30 @@ service cloud.firestore {
     }
 
     /**
+     * @description User credit profiles for the credits system.
+     * @path /userProfiles/{userId}
+     * @principle Only the authenticated owner can read/write their own credit profile.
+     */
+    match /userProfiles/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+
+      /**
+       * @description Credit transaction history.
+       * @path /userProfiles/{userId}/transactions/{transactionId}
+       */
+      match /transactions/{transactionId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
+    }
+
+    /**
      * @description Public brands collection for shareable brand pages.
      * @path /brands/{brandId}
      * @allow (get) Anyone can read a brand document.
