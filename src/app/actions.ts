@@ -16,7 +16,7 @@ import { generatePresentationData, GeneratePresentationDataInput, type GenerateP
 import { justifyLogo, JustifyLogoInput, Justification } from "@/ai/flows/justify-logo";
 import { generatePresentationNarrative, PresentationNarrativeInput, PresentationNarrativeOutput } from "@/ai/flows/generate-presentation-narrative";
 import { generateAudienceSuggestions, GenerateAudienceSuggestionsInput, GenerateAudienceSuggestionsOutput } from "@/ai/flows/generate-audience-suggestions";
-import { requireServerAuth } from "@/lib/server-auth";
+import { requireServerAuth, isAllowedUrl } from "@/lib/server-auth";
 
 export async function getTaglineSuggestions(
   idToken: string,
@@ -190,40 +190,6 @@ export async function getBrandSuggestions(idToken: string, topic: string): Promi
       success: false,
       error: `An unexpected error occurred while generating brand details: ${errorMessage}`,
     };
-  }
-}
-
-const ALLOWED_HOSTS = [
-  'firebasestorage.googleapis.com',
-  'storage.googleapis.com',
-  '.r2.dev',
-  '.fal.media',
-  '.fal.ai',
-  '.replicate.delivery',
-  '.replicate.com',
-];
-
-const BLOCKED_PATTERNS = [
-  /^https?:\/\/localhost/i,
-  /^https?:\/\/127\./,
-  /^https?:\/\/10\./,
-  /^https?:\/\/172\.(1[6-9]|2\d|3[01])\./,
-  /^https?:\/\/192\.168\./,
-  /^https?:\/\/169\.254\./,
-  /^https?:\/\/0\./,
-  /^https?:\/\/\[::1\]/,
-];
-
-function isAllowedUrl(url: string): boolean {
-  if (url.startsWith('data:')) return true;
-  try {
-    const parsed = new URL(url);
-    if (BLOCKED_PATTERNS.some(p => p.test(url))) return false;
-    return ALLOWED_HOSTS.some(h =>
-      h.startsWith('.') ? parsed.hostname.endsWith(h) : parsed.hostname === h
-    );
-  } catch {
-    return false;
   }
 }
 
