@@ -107,7 +107,7 @@ export function LogoDetailClient() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Logo not found</h1>
-                    <p className="text-muted-foreground mb-4">This logo may have been deleted or you don't have access to it.</p>
+                    <p className="text-muted-foreground mb-4">This logo may have been deleted or you don&apos;t have access to it.</p>
                     <Link href="/dashboard">
                         <Button>Go to Dashboard</Button>
                     </Link>
