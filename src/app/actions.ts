@@ -16,8 +16,10 @@ import { generatePresentationData, GeneratePresentationDataInput, type GenerateP
 import { justifyLogo, JustifyLogoInput, Justification } from "@/ai/flows/justify-logo";
 import { generatePresentationNarrative, PresentationNarrativeInput, PresentationNarrativeOutput } from "@/ai/flows/generate-presentation-narrative";
 import { generateAudienceSuggestions, GenerateAudienceSuggestionsInput, GenerateAudienceSuggestionsOutput } from "@/ai/flows/generate-audience-suggestions";
+import { requireServerAuth } from "@/lib/server-auth";
 
 export async function getTaglineSuggestions(
+  idToken: string,
   name: string,
   elevatorPitch: string,
   audience: string,
@@ -25,6 +27,7 @@ export async function getTaglineSuggestions(
   undesirableCues: string
 ): Promise<{ success: boolean; data?: string[]; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       return { success: false, error: "Brand details are required." };
     }
@@ -41,6 +44,7 @@ export async function getTaglineSuggestions(
 }
 
 export async function getLogoSuggestion(
+  idToken: string,
   name: string,
   elevatorPitch: string,
   audience: string,
@@ -50,6 +54,7 @@ export async function getLogoSuggestion(
 ): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
   console.log("getLogoSuggestion: Starting...");
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       console.error("getLogoSuggestion: Missing brand details.");
       return { success: false, error: "Brand details are required." };
@@ -79,6 +84,7 @@ export async function getLogoSuggestion(
 }
 
 export async function getLogoSuggestionOpenAI(
+  idToken: string,
   name: string,
   elevatorPitch: string,
   audience: string,
@@ -87,6 +93,7 @@ export async function getLogoSuggestionOpenAI(
   options?: { size?: '512x512' | '768x768' | '1024x1024'; concept?: string }
 ): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       return { success: false, error: "Brand details are required." };
     }
@@ -111,6 +118,7 @@ export async function getLogoSuggestionOpenAI(
 }
 
 export async function getLogoSuggestionFal(
+  idToken: string,
   name: string,
   elevatorPitch: string,
   audience: string,
@@ -120,6 +128,7 @@ export async function getLogoSuggestionFal(
   model?: string,
 ): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       return { success: false, error: "Brand details are required." };
     }
@@ -145,10 +154,12 @@ export async function getLogoSuggestionFal(
 
 
 export async function getBrandCompletion(
+  idToken: string,
   name: string,
   elevatorPitch: string
 ): Promise<{ success: boolean; data?: CompleteBrandDetailsOutput; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch) {
       return { success: false, error: "Name and elevator pitch are required." };
     }
@@ -164,8 +175,9 @@ export async function getBrandCompletion(
   }
 }
 
-export async function getBrandSuggestions(topic: string): Promise<{ success: boolean; data?: GenerateBrandDetailsOutput; error?: string }> {
+export async function getBrandSuggestions(idToken: string, topic: string): Promise<{ success: boolean; data?: GenerateBrandDetailsOutput; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!topic) {
       return { success: false, error: "Topic is required." };
     }
@@ -215,8 +227,9 @@ function isAllowedUrl(url: string): boolean {
   }
 }
 
-export async function convertUrlToDataUri(url: string): Promise<{ success: boolean; data?: string; error?: string }> {
+export async function convertUrlToDataUri(idToken: string, url: string): Promise<{ success: boolean; data?: string; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!isAllowedUrl(url)) {
       return { success: false, error: 'URL not allowed. Only images from known storage providers are accepted.' };
     }
@@ -243,9 +256,11 @@ export async function convertUrlToDataUri(url: string): Promise<{ success: boole
 
 
 export async function getColorizedLogo(
+  idToken: string,
   input: ColorizeLogoInput,
 ): Promise<{ success: boolean; data?: { colorLogoUrl: string; palette: string[]; colorNames: string[] }; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.logoUrl || !input.name || !input.elevatorPitch || !input.audience) {
       return { success: false, error: "A logo and brand details are required to generate a color logo." };
     }
@@ -265,6 +280,7 @@ export async function getColorizedLogo(
 }
 
 export async function getLogoConcept(
+  idToken: string,
   name: string,
   elevatorPitch: string,
   audience: string,
@@ -272,6 +288,7 @@ export async function getLogoConcept(
   undesirableCues: string,
 ): Promise<{ success: boolean; data?: { concept: string; stylePrompt: string }; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       return { success: false, error: "Brand details are required." };
     }
@@ -289,9 +306,11 @@ export async function getLogoConcept(
 }
 
 export async function getLogoCritique(
+  idToken: string,
   input: CritiqueLogoInput
 ): Promise<{ success: boolean; data?: Critique; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.logoUrl || !input.brandName) {
       return { success: false, error: "Logo URL and brand name are required." };
     }
@@ -308,9 +327,11 @@ export async function getLogoCritique(
 }
 
 export async function getVectorizedLogo(
+  idToken: string,
   logoUrl: string
 ): Promise<{ success: boolean; data?: { vectorLogoUrl: string }; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!logoUrl) {
       return { success: false, error: "Logo URL is required." };
     }
@@ -327,9 +348,11 @@ export async function getVectorizedLogo(
 }
 
 export async function getGeneratedStories(
+  idToken: string,
   input: GenerateStoriesInput
 ): Promise<{ success: boolean; data?: Array<{ headline: string; body: string }>; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.name || !input.elevatorPitch) {
       return { success: false, error: "Name and elevator pitch are required." };
     }
@@ -346,9 +369,11 @@ export async function getGeneratedStories(
 }
 
 export async function getPresentationData(
+  idToken: string,
   input: GeneratePresentationDataInput
 ): Promise<{ success: boolean; data?: GeneratePresentationDataOutput; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.name || !input.elevatorPitch || !input.concept) {
       return { success: false, error: "Name, elevator pitch, and concept are required." };
     }
@@ -365,9 +390,11 @@ export async function getPresentationData(
 }
 
 export async function getLogoJustification(
+  idToken: string,
   input: JustifyLogoInput
 ): Promise<{ success: boolean; data?: Justification; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.logoUrl || !input.brandName) {
       return { success: false, error: "Logo URL and brand name are required." };
     }
@@ -384,9 +411,11 @@ export async function getLogoJustification(
 }
 
 export async function getPresentationNarrative(
+  idToken: string,
   input: PresentationNarrativeInput
 ): Promise<{ success: boolean; data?: PresentationNarrativeOutput; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.brandName || !input.elevatorPitch || !input.targetAudience) {
       return { success: false, error: "Brand name, elevator pitch, and audience are required." };
     }
@@ -403,9 +432,11 @@ export async function getPresentationNarrative(
 }
 
 export async function getAudienceSuggestions(
+  idToken: string,
   input: GenerateAudienceSuggestionsInput
 ): Promise<{ success: boolean; data?: GenerateAudienceSuggestionsOutput; error?: string }> {
   try {
+    await requireServerAuth(idToken);
     if (!input.brandName || !input.elevatorPitch) {
       return { success: false, error: "Brand name and elevator pitch are required." };
     }

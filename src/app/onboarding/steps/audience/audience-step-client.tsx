@@ -7,12 +7,52 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { audienceStepSchema } from '@/features/onboarding/utils/validation-schemas';
 import { trackOnboardingEvent } from '@/features/onboarding/utils/onboarding-analytics';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/firebase';
+import { getAudienceSuggestions } from '@/app/actions';
+import { Loader2 } from 'lucide-react';
 
 export default function AudienceStepClient() {
     const { state, updateField } = useOnboardingState();
     const { next, back } = useStepNavigation('audience');
+    const auth = useAuth();
     const [error, setError] = useState<string | null>(null);
+    const [suggestions, setSuggestions] = useState<string[]>([
+        'Tech Professionals',
+        'Young Parents',
+        'Fitness Enthusiasts',
+        'Eco-conscious Foodies'
+    ]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
+    // Generate contextual suggestions when component mounts
+    useEffect(() => {
+        const generateSuggestions = async () => {
+            if (!state.brandName || !state.elevatorPitch) {
+                return; // No context to generate suggestions
+            }
+
+            setLoadingSuggestions(true);
+            try {
+                const idToken = await auth.currentUser?.getIdToken() ?? '';
+                const result = await getAudienceSuggestions(idToken, {
+                    brandName: state.brandName,
+                    elevatorPitch: state.elevatorPitch,
+                });
+
+                if (result.success && result.data) {
+                    setSuggestions(result.data.suggestions);
+                }
+            } catch (err) {
+                console.error('Failed to generate audience suggestions:', err);
+                // Keep default suggestions on error
+            } finally {
+                setLoadingSuggestions(false);
+            }
+        };
+
+        generateSuggestions();
+    }, []); // Only run once on mount
 
     const handleNext = async () => {
         const result = audienceStepSchema.safeParse({ targetAudience: state.targetAudience });
@@ -67,16 +107,23 @@ export default function AudienceStepClient() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                    {['Tech Professionals', 'Young Parents', 'Fitness Enthusiasts', 'Eco-conscious Foodies'].map((example) => (
-                        <button
-                            key={example}
-                            type="button"
-                            onClick={() => updateField('targetAudience', example)}
-                            className="text-left p-3 text-sm rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors"
-                        >
-                            {example}
-                        </button>
-                    ))}
+                    {loadingSuggestions ? (
+                        <div className="col-span-2 flex items-center justify-center py-8 text-muted-foreground">
+                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                            <span className="text-sm">Generating suggestions...</span>
+                        </div>
+                    ) : (
+                        suggestions.map((example) => (
+                            <button
+                                key={example}
+                                type="button"
+                                onClick={() => updateField('targetAudience', example)}
+                                className="text-left p-3 text-sm rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                            >
+                                {example}
+                            </button>
+                        ))
+                    )}
                 </div>
             </div>
         </OnboardingStepWrapper>

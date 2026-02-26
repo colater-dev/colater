@@ -12,7 +12,7 @@ import {
     writeBatch,
     getDocs,
 } from 'firebase/firestore';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { getTaglineSuggestions } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -25,6 +25,7 @@ import { useRequireAuth } from '@/features/auth/hooks';
 
 export function TaglinesClient() {
     const { user, isLoading: isLoadingAuth } = useRequireAuth();
+    const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
@@ -70,7 +71,9 @@ export function TaglinesClient() {
         setIsGeneratingTaglines(true);
 
         try {
+            const idToken = await auth.currentUser?.getIdToken() ?? '';
             const suggestionResult = await getTaglineSuggestions(
+                idToken,
                 selectedBrand.latestName,
                 selectedBrand.latestElevatorPitch,
                 selectedBrand.latestAudience,
@@ -110,7 +113,7 @@ export function TaglinesClient() {
         } finally {
             setIsGeneratingTaglines(false);
         }
-    }, [selectedBrand, user, selectedBrandId, firestore, toast]);
+    }, [selectedBrand, user, selectedBrandId, firestore, toast, auth]);
 
     const handleTaglineStatusUpdate = useCallback(
         async (taglineId: string, status: 'liked' | 'disliked') => {

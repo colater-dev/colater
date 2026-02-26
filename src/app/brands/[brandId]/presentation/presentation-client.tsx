@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useDoc, useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useCollection, useUser, useAuth, useMemoFirebase } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { createBrandService, createLogoService, createPresentationService } from '@/services';
 import type { Brand, Logo, Presentation } from '@/lib/types';
@@ -36,6 +36,7 @@ export default function PresentationClient() {
     const { brandId } = useParams() as { brandId: string };
     const router = useRouter();
     const { user } = useUser();
+    const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
     const { toggleOpen } = useSidebar();
@@ -102,7 +103,8 @@ export default function PresentationClient() {
                     setIsGenerating(true);
 
                     // Generate narrative content via AI
-                    const narrativeResult = await getPresentationNarrative({
+                    const idToken = await auth.currentUser?.getIdToken() ?? '';
+                    const narrativeResult = await getPresentationNarrative(idToken, {
                         brandName: brand.latestName,
                         elevatorPitch: brand.latestElevatorPitch,
                         targetAudience: brand.latestAudience,
@@ -150,7 +152,7 @@ export default function PresentationClient() {
         };
 
         loadPresentation();
-    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, creditsService]);
+    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, creditsService, auth]);
 
     // Keyboard Navigation
     useEffect(() => {

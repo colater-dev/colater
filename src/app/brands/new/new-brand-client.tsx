@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useFirestore, useAuth, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { createBrandService } from '@/services';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function NewBrandClient() {
     const router = useRouter();
     const { user } = useRequireAuth();
+    const auth = useAuth();
     const firestore = useFirestore();
     const brandService = useMemo(() => createBrandService(firestore), [firestore]);
     const { toast } = useToast();
@@ -62,7 +63,8 @@ export function NewBrandClient() {
         }
         setIsGenerating(true);
         try {
-            const result = await getBrandSuggestions(topic);
+            const idToken = await auth.currentUser?.getIdToken() ?? '';
+            const result = await getBrandSuggestions(idToken, topic);
             if (result.success && result.data) {
                 form.setValue('name', result.data.name);
                 form.setValue('elevatorPitch', result.data.elevatorPitch);
@@ -103,7 +105,8 @@ export function NewBrandClient() {
 
         setIsGenerating(true);
         try {
-            const result = await getBrandCompletion(name, elevatorPitch);
+            const idToken = await auth.currentUser?.getIdToken() ?? '';
+            const result = await getBrandCompletion(idToken, name, elevatorPitch);
             if (result.success && result.data) {
                 form.setValue('audience', result.data.audience);
                 form.setValue('desirableCues', result.data.desirableCues);
