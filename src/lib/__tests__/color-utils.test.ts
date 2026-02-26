@@ -118,19 +118,19 @@ describe('rgbToHsl', () => {
   });
 
   it('converts white', () => {
-    const [h, s, l] = rgbToHsl(255, 255, 255);
+    const [, s, l] = rgbToHsl(255, 255, 255);
     expect(s).toBe(0);
     expect(l).toBe(1);
   });
 
   it('converts black', () => {
-    const [h, s, l] = rgbToHsl(0, 0, 0);
+    const [, s, l] = rgbToHsl(0, 0, 0);
     expect(s).toBe(0);
     expect(l).toBe(0);
   });
 
   it('converts mid-gray', () => {
-    const [h, s, l] = rgbToHsl(128, 128, 128);
+    const [, s, l] = rgbToHsl(128, 128, 128);
     expect(s).toBe(0);
     expect(l).toBeCloseTo(128 / 255, 2);
   });

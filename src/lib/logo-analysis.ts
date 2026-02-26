@@ -266,7 +266,6 @@ export function calculateBalance(
     const wordmarkWeight = wordmarkAnalysis.visualWeight;
 
     // Target: achieve visual equilibrium
-    const targetRatio = 1.0;
     const currentRatio = logoWeight / wordmarkWeight;
 
     let logoScale = 1.0;

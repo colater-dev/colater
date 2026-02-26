@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 export default function NameStepClient() {
     const { state, updateField } = useOnboardingState();
-    const { next, back, totalSteps } = useStepNavigation('name');
+    const { next, back } = useStepNavigation('name');
     const [error, setError] = useState<string | null>(null);
 
     const handleNext = async () => {

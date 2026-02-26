@@ -29,13 +29,13 @@ export function useOnboardingState() {
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
-                setState(parsed);
+                setState(parsed); // eslint-disable-line react-hooks/set-state-in-effect -- Loading persisted state on mount
             } catch (e) {
                 console.error('Failed to parse onboarding state', e);
                 localStorage.removeItem(STORAGE_KEY);
             }
         }
-        setIsLoaded(true);
+        setIsLoaded(true);  
     }, []);
 
     // Save to localStorage on state change (debounced)
@@ -49,7 +49,7 @@ export function useOnboardingState() {
         return () => clearTimeout(timeoutId);
     }, [state, isLoaded]);
 
-    const updateField = useCallback((field: keyof OnboardingState, value: any) => {
+    const updateField = useCallback((field: keyof OnboardingState, value: OnboardingState[keyof OnboardingState]) => {
         setState(prev => ({
             ...prev,
             [field]: value,

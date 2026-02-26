@@ -16,19 +16,19 @@ interface CoverSlideProps {
         backgroundColor?: string;
     };
     isEditing: boolean;
-    onUpdate: (updates: any) => void;
+    onUpdate: (updates: Record<string, string>) => void;
     brand: Brand;
     logo?: Logo;
     palette?: string[];
 }
 
-export function CoverSlide({ content, isEditing, onUpdate, brand, logo, palette }: CoverSlideProps) {
+export function CoverSlide({ content, isEditing, onUpdate, brand, logo }: CoverSlideProps) {
     const font = BRAND_FONTS.find(f => f.name === (logo?.font || brand?.font)) || BRAND_FONTS[0];
     const bgColor = content.backgroundColor || (brand.displaySettings?.invertLogo ? '#000000' : '#ffffff');
     const isDark = !isLightColor(bgColor);
     const textColor = isDark ? 'white' : 'black';
     // Auto-calculate optimal balance between logo and text
-    const { displaySettings: autoBalance, isAnalyzing } = useLogoBalance(
+    const { displaySettings: autoBalance } = useLogoBalance(
         logo?.logoUrl,
         content.brandName || brand.latestName,
         font.name

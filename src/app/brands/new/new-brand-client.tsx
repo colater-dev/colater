@@ -162,10 +162,10 @@ export function NewBrandClient() {
             });
 
             router.push(`/brands/${brandId}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             setIsSubmitting(false);
 
-            if (error.code === 'permission-denied') {
+            if (error instanceof Object && 'code' in error && error.code === 'permission-denied') {
                 const brandsCollection = brandService.getBrandsCollection(user.uid);
                 const permissionError = new FirestorePermissionError({
                     path: brandsCollection.path,

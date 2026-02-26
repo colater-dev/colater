@@ -12,7 +12,6 @@ import {
   query,
   orderBy
 } from 'firebase/firestore';
-import type { Tagline } from '@/lib/types';
 
 /**
  * Service layer for tagline-related operations.

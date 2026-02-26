@@ -6,7 +6,7 @@ import { query, collectionGroup, where, orderBy } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Star, Loader2 } from 'lucide-react';
 import { createLogoService } from '@/services';
 import type { Logo } from '@/lib/types';
 import Image from 'next/image';

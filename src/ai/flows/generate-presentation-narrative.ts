@@ -3,17 +3,15 @@
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 
-const PresentationNarrativeInputSchema = z.object({
-    brandName: z.string(),
-    elevatorPitch: z.string(),
-    targetAudience: z.string(),
-    desirableCues: z.string().optional(),
-    logoConceptSummary: z.string().optional(),
-    palette: z.array(z.string()),
-    colorNames: z.array(z.string()).optional(),
-});
-
-export type PresentationNarrativeInput = z.infer<typeof PresentationNarrativeInputSchema>;
+export type PresentationNarrativeInput = {
+    brandName: string;
+    elevatorPitch: string;
+    targetAudience: string;
+    desirableCues?: string;
+    logoConceptSummary?: string;
+    palette: string[];
+    colorNames?: string[];
+};
 
 const PresentationNarrativeOutputSchema = z.object({
     challengeTitle: z.string(),

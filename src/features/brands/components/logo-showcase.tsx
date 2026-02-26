@@ -3,15 +3,10 @@ import { toPng } from 'html-to-image';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { RefreshCw, Trash2, Download, PenTool, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { BRAND_FONTS } from '@/config/brand-fonts';
+import { RefreshCw, Trash2, Download } from 'lucide-react';
 import { shiftHue, darkenColor, isLightColor } from '@/lib/color-utils';
 import type { Logo } from '@/lib/types';
-import { LogoControls } from './logo-controls';
 import { CritiquePoint } from './critique-point';
-import { DownloadButton } from './download-button';
-import { PaletteDots } from './palette-dots';
 import { StickerPreview } from './sticker-preview';
 import { MockupPreview } from './mockup-preview';
 
@@ -86,7 +81,6 @@ export const LogoShowcase = memo(function LogoShowcase({
     setHueShifts,
     selectedBrandFont,
     onFontChange,
-    cardModes,
     cycleCardMode,
     getCardMode,
     getModeStyles,
@@ -120,23 +114,13 @@ export const LogoShowcase = memo(function LogoShowcase({
     onFileUpload,
     onDeleteColorVersion,
     onVectorizeLogo,
-    isVectorizing,
     onSaveCropDetails,
 }: LogoShowcaseProps) {
-    const animationVariants = {
-        fade: { hidden: { opacity: 0 }, visible: { opacity: 1 } },
-        slide: { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } },
-        scale: { hidden: { scale: 0.5, opacity: 0 }, visible: { scale: 1, opacity: 1 } },
-        blur: { hidden: { filter: 'blur(10px)', opacity: 0 }, visible: { filter: 'blur(0px)', opacity: 1 } },
-    };
-
-    const logoContainerRef = useRef<HTMLDivElement>(null);
-    const logoImageRef = useRef<HTMLImageElement | null>(null);
     const [croppedLogoUrl, setCroppedLogoUrl] = useState<string | null>(null);
     const [stickerLogoUrl, setStickerLogoUrl] = useState<string | null>(null);
     const [colorStickerUrl, setColorStickerUrl] = useState<string | null>(null);
     const [directStickerUrl, setDirectStickerUrl] = useState<string | null>(null); // B&W sticker from original URL (bypassing crop)
-    const [cropBounds, setCropBounds] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+    const [, setCropBounds] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
     // Existing effect for bw sticker and cropped logo
 
@@ -160,7 +144,7 @@ export const LogoShowcase = memo(function LogoShowcase({
                 let imageData: ImageData;
                 try {
                     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                } catch (e) {
+                } catch {
                     console.warn('Could not get image data (CORS), skipping crop detection');
                     return;
                 }
@@ -276,7 +260,7 @@ export const LogoShowcase = memo(function LogoShowcase({
             }
             // B&W sticker is now generated in a separate effect that depends on croppedLogoUrl
         }
-    }, [currentLogo?.logoUrl, currentLogo?.cropDetails, onSaveCropDetails, setInvertLogo]);
+    }, [currentLogo?.logoUrl, currentLogo?.cropDetails, onSaveCropDetails, setInvertLogo]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Generate B&W sticker from cropped logo (once cropped logo is ready)
     useEffect(() => {
@@ -494,6 +478,7 @@ export const LogoShowcase = memo(function LogoShowcase({
                                     className="w-full h-auto"
                                 />
                             ) : (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                     src={externalMediaUrl}
                                     alt="External media"
@@ -588,7 +573,6 @@ export const LogoShowcase = memo(function LogoShowcase({
                             className="w-8 h-8 bg-black/20 hover:bg-black/40 text-white"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                // @ts-ignore - accessing ref from parent div
                                 handleDownload({ current: e.currentTarget.closest('.group') }, 'light-logo');
                             }}
                             title="Download PNG"
@@ -708,7 +692,7 @@ export const LogoShowcase = memo(function LogoShowcase({
                             const shouldInvert = isLightColor(darkenedColor);
                             const cardKey = `brand-color-v${brandColor.versionIndex}-c${brandColor.colorIndex}`;
                             const mode = getCardMode(cardKey, shouldInvert);
-                            const styles = getModeStyles(mode);
+                            getModeStyles(mode);
 
                             return (
                                 <div
@@ -775,7 +759,7 @@ export const LogoShowcase = memo(function LogoShowcase({
 
                                         const backgroundType = isLightColor(darkenedColor) ? 'light' : 'dark';
                                         // Use shouldInvertLogo to determine if we need to invert based on background AND global invert setting
-                                        const baseInvert = shouldInvertLogo(backgroundType);
+                                        shouldInvertLogo(backgroundType);
 
                                         // Combine with card mode styles (which might also have invert)
                                         // getModeStyles returns filter: 'invert(1)' or 'none'

@@ -5,7 +5,6 @@ import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useMemo } from 'react';
 import type { Logo, Brand } from '@/lib/types';
 import { BrandIdentityCard } from '@/features/brands/components';
 import { LogoFeedbackForm } from '@/features/brands/components/logo-feedback-form';

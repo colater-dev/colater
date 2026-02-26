@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import type { Logo } from '@/lib/types';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, memo } from 'react';
 import { cropImageToContent } from '@/lib/image-utils';
 

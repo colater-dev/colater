@@ -5,7 +5,6 @@ import {
   addDoc,
   collection,
   serverTimestamp,
-  updateDoc,
   increment,
   Firestore,
   DocumentReference,

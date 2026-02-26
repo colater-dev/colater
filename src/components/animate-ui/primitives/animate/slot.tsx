@@ -69,7 +69,7 @@ function Slot<T extends HTMLElement = HTMLElement>({
     children.type !== null &&
     isMotionComponent(children.type);
 
-  const Base = React.useMemo(
+  const Base = React.useMemo(  
     () =>
       isAlreadyMotion
         ? (children.type as React.ElementType)
@@ -84,6 +84,7 @@ function Slot<T extends HTMLElement = HTMLElement>({
   const mergedProps = mergeProps(childProps, props);
 
   return (
+    // eslint-disable-next-line react-hooks/static-components -- Dynamic motion component wrapping is intentional
     <Base {...mergedProps} ref={mergeRefs(childRef as Exclude<React.Ref<T>, string>, ref)} />
   );
 }

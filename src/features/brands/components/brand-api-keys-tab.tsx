@@ -52,7 +52,7 @@ export function BrandAPIKeysTab({ brandId, brandName, userId }: BrandAPIKeysTabP
   // Load API keys
   useEffect(() => {
     loadAPIKeys();
-  }, [brandId, userId]);
+  }, [brandId, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAPIKeys() {
     setIsLoading(true);
@@ -73,7 +73,7 @@ export function BrandAPIKeysTab({ brandId, brandName, userId }: BrandAPIKeysTabP
 
       const data = await response.json();
       setApiKeys(data.apiKeys || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading API keys:', error);
       toast({
         title: 'Error',
@@ -130,7 +130,7 @@ export function BrandAPIKeysTab({ brandId, brandName, userId }: BrandAPIKeysTabP
         title: 'Success',
         description: 'API key created successfully',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating API key:', error);
       toast({
         title: 'Error',
@@ -170,7 +170,7 @@ export function BrandAPIKeysTab({ brandId, brandName, userId }: BrandAPIKeysTabP
 
       // Reload keys
       await loadAPIKeys();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error revoking API key:', error);
       toast({
         title: 'Error',
@@ -237,7 +237,7 @@ export function BrandAPIKeysTab({ brandId, brandName, userId }: BrandAPIKeysTabP
             </div>
             <div className="w-48">
               <Label htmlFor="keyType">Access Level</Label>
-              <Select value={newKeyType} onValueChange={(value: any) => setNewKeyType(value)}>
+              <Select value={newKeyType} onValueChange={(value: string) => setNewKeyType(value as 'owner' | 'team' | 'developer')}>
                 <SelectTrigger id="keyType">
                   <SelectValue />
                 </SelectTrigger>

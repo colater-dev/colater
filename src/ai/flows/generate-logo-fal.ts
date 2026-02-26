@@ -17,11 +17,10 @@ const FalGenerateLogoInputSchema = z.object({
 });
 export type FalGenerateLogoInput = z.infer<typeof FalGenerateLogoInputSchema>;
 
-const FalGenerateLogoOutputSchema = z.object({
-    logoUrl: z.string(), // data URI
-    prompt: z.string(), // The full prompt used for generation
-});
-export type FalGenerateLogoOutput = z.infer<typeof FalGenerateLogoOutputSchema>;
+export type FalGenerateLogoOutput = {
+    logoUrl: string;
+    prompt: string;
+};
 
 export async function generateLogoFal(
     input: FalGenerateLogoInput
@@ -86,7 +85,7 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
                 prompt: stylePromptPrompt,
             });
             aiStylePrompt = genkitResponse.text || "";
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('[generate-logo-fal] Error generating style prompt:', error);
             aiStylePrompt = "";
         }
@@ -107,7 +106,7 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
     const modelId = parsed.model || "fal-ai/ideogram/v3";
 
     // Prepare input based on model
-    const modelInput: any = {
+    const modelInput: Record<string, string | Record<string, number>> = {
         prompt: fullPrompt,
     };
 
@@ -128,7 +127,7 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
     }
 
     try {
-        const result: any = await fal.subscribe(modelId, {
+        const result = await fal.subscribe(modelId, {
             input: modelInput,
             logs: true,
             onQueueUpdate: () => {},
@@ -152,9 +151,10 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         const dataUri = `data:${contentType};base64,${base64}`;
 
         return { logoUrl: dataUri, prompt: fullPrompt };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[generate-logo-fal] Error:', error);
-        const errorDetails = error.body ? JSON.stringify(error.body) : error.message;
+        const err = error as { body?: unknown; message?: string };
+        const errorDetails = err.body ? JSON.stringify(err.body) : err.message;
         throw new Error(`Fal image generation failed: ${errorDetails}`);
     }
 }

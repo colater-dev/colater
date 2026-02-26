@@ -13,12 +13,12 @@ interface NextStepsSlideProps {
         closingMessage: string;
     };
     isEditing: boolean;
-    onUpdate: (updates: any) => void;
+    onUpdate: (updates: Record<string, unknown>) => void;
     brand: Brand;
     logo?: Logo;
 }
 
-export function NextStepsSlide({ content, isEditing, onUpdate, brand, logo }: NextStepsSlideProps) {
+export function NextStepsSlide({ content, isEditing, onUpdate, logo }: NextStepsSlideProps) {
     const deliverables = content.deliverablesList || [];
     const invertLogoSetting = !!logo?.displaySettings?.invertLogo;
 
@@ -38,7 +38,7 @@ export function NextStepsSlide({ content, isEditing, onUpdate, brand, logo }: Ne
                     className="space-y-10"
                 >
                     <div className="space-y-6">
-                        <h2 className="font-mono uppercase tracking-[0.3em] text-primary" style={{ fontSize: '1.2cqw' }}>What's Included</h2>
+                        <h2 className="font-mono uppercase tracking-[0.3em] text-primary" style={{ fontSize: '1.2cqw' }}>What&apos;s Included</h2>
                         <div className="space-y-4">
                             {deliverables.map((item, i) => (
                                 <div key={i} className="flex items-center gap-4 group">

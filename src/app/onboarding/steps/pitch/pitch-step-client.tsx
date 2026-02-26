@@ -68,7 +68,7 @@ export default function PitchStepClient() {
 
                 <div className="pt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <p className="text-sm text-primary/80 leading-relaxed">
-                        <span className="font-bold underline">Try this formula:</span> "We help [target audience] [achieve result] by providing [your product/service]."
+                        <span className="font-bold underline">Try this formula:</span> &quot;We help [target audience] [achieve result] by providing [your product/service].&quot;
                     </p>
                 </div>
             </div>

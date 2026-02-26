@@ -66,7 +66,7 @@ export async function loadImageAsDataUri(url: string): Promise<string> {
                         }
                         ctx.drawImage(fallbackImg, 0, 0);
                         resolve(canvas.toDataURL('image/png'));
-                    } catch (e) {
+                    } catch {
                         resolve(url);
                     }
                 };

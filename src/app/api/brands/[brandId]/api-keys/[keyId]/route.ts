@@ -64,10 +64,10 @@ export async function DELETE(
       success: true,
       message: 'API key revoked successfully',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Revoke API key error:', error);
 
-    if (error.message === 'Unauthorized') {
+    if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

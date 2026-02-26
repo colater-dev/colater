@@ -1,6 +1,5 @@
 'use client';
 
-import { Brand, Logo } from '@/lib/types';
 import { EditableText } from '../editable-text';
 import { motion } from 'framer-motion';
 import { Sparkles, Target, Zap } from 'lucide-react';
@@ -12,7 +11,7 @@ interface SolutionSlideProps {
         targetAudienceStatement: string;
     };
     isEditing: boolean;
-    onUpdate: (updates: any) => void;
+    onUpdate: (updates: Record<string, unknown>) => void;
 }
 
 export function SolutionSlide({ content, isEditing, onUpdate }: SolutionSlideProps) {

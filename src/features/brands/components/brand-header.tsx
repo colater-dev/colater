@@ -35,7 +35,7 @@ export function BrandHeader({ brand }: BrandHeaderProps) {
 
   // Initialize state from brand data
   useEffect(() => {
-    setAudience(parseToArray(brand.latestAudience));
+    setAudience(parseToArray(brand.latestAudience)); // eslint-disable-line react-hooks/set-state-in-effect
     setDesirableCues(parseToArray(brand.latestDesirableCues));
     setUndesirableCues(parseToArray(brand.latestUndesirableCues));
   }, [brand.latestAudience, brand.latestDesirableCues, brand.latestUndesirableCues]);

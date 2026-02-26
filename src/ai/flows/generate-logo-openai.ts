@@ -18,11 +18,10 @@ const OpenAIGenerateLogoInputSchema = z.object({
 });
 export type OpenAIGenerateLogoInput = z.infer<typeof OpenAIGenerateLogoInputSchema>;
 
-const OpenAIGenerateLogoOutputSchema = z.object({
-  logoUrl: z.string(), // data URI
-  prompt: z.string(), // The full prompt used for generation
-});
-export type OpenAIGenerateLogoOutput = z.infer<typeof OpenAIGenerateLogoOutputSchema>;
+export type OpenAIGenerateLogoOutput = {
+  logoUrl: string;
+  prompt: string;
+};
 
 export async function generateLogoOpenAI(
   input: OpenAIGenerateLogoInput
@@ -83,7 +82,7 @@ Then, return ONLY a concise stylePrompt (3-4 sentences) that can be directly use
         prompt: stylePromptPrompt,
       });
       aiStylePrompt = genkitResponse.text || "";
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[generate-logo-openai] Error generating style prompt:', error);
       // Fallback to empty string if genkit call fails
       aiStylePrompt = "";
@@ -114,7 +113,7 @@ Then, return ONLY a concise stylePrompt (3-4 sentences) that can be directly use
 
   try {
     // Use Ideogram V3 as requested
-    const result: any = await fal.subscribe("fal-ai/ideogram/v3", {
+    const result = await fal.subscribe("fal-ai/ideogram/v3", {
       input: {
         prompt: fullPrompt,
         image_size: {
@@ -144,9 +143,10 @@ Then, return ONLY a concise stylePrompt (3-4 sentences) that can be directly use
     const dataUri = `data:${contentType};base64,${base64}`;
 
     return { logoUrl: dataUri, prompt: fullPrompt };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[generate-logo-openai] Error:', error);
-    const errorDetails = error.body ? JSON.stringify(error.body) : error.message;
+    const err = error as { body?: unknown; message?: string };
+    const errorDetails = err.body ? JSON.stringify(err.body) : err.message;
     throw new Error(`Fal image generation failed: ${errorDetails}`);
   }
 }

@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BRAND_FONTS } from '@/config/brand-fonts';
 import { shiftHue, darkenColor, isLightColor, lightenColor } from '@/lib/color-utils';
@@ -59,11 +58,9 @@ export function BrandIdentityCard({
   primaryTagline,
   logos,
   currentLogoIndex,
-  isLoadingLogos,
   isGeneratingLogo,
   isGeneratingConcept,
   isColorizing,
-  isLoadingTaglines,
   logoConcept,
   onGenerateConcept,
   onConceptChange,
@@ -195,7 +192,7 @@ export function BrandIdentityCard({
     if (!currentLogo.isPublic && onMakeLogoPublic) {
       try {
         await onMakeLogoPublic(currentLogo.id);
-      } catch (error) {
+      } catch {
         toast({
           variant: 'destructive',
           title: 'Failed to share',
@@ -233,7 +230,7 @@ export function BrandIdentityCard({
     } else {
       setExternalMediaUrl('');
     }
-  }, [currentLogo?.id]);
+  }, [currentLogo?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced save of display settings
   const saveTimeoutRef = useRef<NodeJS.Timeout>(undefined);
@@ -265,7 +262,7 @@ export function BrandIdentityCard({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [currentLogo?.id, textTransform, showBrandName, invertLogo, horizontalLogoTextGap, horizontalLogoTextBalance, verticalLogoTextGap, verticalLogoTextBalance, logoContrast, onSaveDisplaySettings]);
+  }, [currentLogo?.id, textTransform, showBrandName, invertLogo, horizontalLogoTextGap, horizontalLogoTextBalance, verticalLogoTextGap, verticalLogoTextBalance, logoContrast, onSaveDisplaySettings]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   // Reset hue shifts when logo changes

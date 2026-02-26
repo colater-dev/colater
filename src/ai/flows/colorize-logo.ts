@@ -63,7 +63,7 @@ const colorizeLogoFlow = ai.defineFlow(
     const prompt = `A professional graphic design color version of this logo for ${input.name}. ${input.elevatorPitch}. Target audience: ${input.audience}. Use a sophisticated and modern color palette. Flat vector style, clean lines, professional brand identity. Maintain the exact silhouette and icon of the original logo. ${input.desirableCues || ''}. Avoid: ${input.undesirableCues || ''}, 3D renders, gradients, shadows, textures.`;
 
     try {
-      const result: any = await fal.subscribe('fal-ai/reve/fast/remix', {
+      const result = await fal.subscribe('fal-ai/reve/fast/remix', {
         input: {
           prompt,
           image_urls: [input.logoUrl],

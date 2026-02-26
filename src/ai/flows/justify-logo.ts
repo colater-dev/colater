@@ -3,16 +3,14 @@
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 
-const JustifyLogoInputSchema = z.object({
-    logoUrl: z.string(),
-    brandName: z.string(),
-    elevatorPitch: z.string(),
-    audience: z.string(),
-    desirableCues: z.string().optional(),
-    undesirableCues: z.string().optional(),
-});
-
-export type JustifyLogoInput = z.infer<typeof JustifyLogoInputSchema>;
+export type JustifyLogoInput = {
+    logoUrl: string;
+    brandName: string;
+    elevatorPitch: string;
+    audience: string;
+    desirableCues?: string;
+    undesirableCues?: string;
+};
 
 export interface JustificationPoint {
     x: number;

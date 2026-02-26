@@ -13,7 +13,7 @@ interface EventProperties {
     step?: number;
     field?: string;
     duration?: number;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
 }
 
 export function trackOnboardingEvent(
@@ -24,7 +24,7 @@ export function trackOnboardingEvent(
     console.log(`[Analytics] ${event}`, properties);
 
     // Example: Integrate with Google Analytics if available
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', event, properties);
+    if (typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
+        (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', event, properties);
     }
 }

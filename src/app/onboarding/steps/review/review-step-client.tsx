@@ -7,19 +7,18 @@ import { useFirestore } from '@/firebase';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { createBrandService } from '@/services';
 import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Edit2, CheckCircle2 } from 'lucide-react';
 import { trackOnboardingEvent } from '@/features/onboarding/utils/onboarding-analytics';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ReviewStepClient() {
-    const { state, clearState } = useOnboardingState();
-    const { back, next, goTo } = useStepNavigation('review');
+    const { state } = useOnboardingState();
+    const { back, goTo } = useStepNavigation('review');
     const { user } = useRequireAuth();
     const firestore = useFirestore();
     const brandService = useMemo(() => createBrandService(firestore), [firestore]);
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [, setIsSubmitting] = useState(false);
 
     const handleGenerate = async () => {
         if (!user) {
@@ -96,7 +95,7 @@ export default function ReviewStepClient() {
                 <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <CheckCircle2 className="w-5 h-5 text-primary" />
                     <p className="text-sm font-medium text-primary/80">
-                        You're all set! We'll generate a logo, palette, and guidelines.
+                        You&apos;re all set! We&apos;ll generate a logo, palette, and guidelines.
                     </p>
                 </div>
             </div>

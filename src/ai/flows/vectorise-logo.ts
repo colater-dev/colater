@@ -9,10 +9,9 @@ const VectoriseLogoInputSchema = z.object({
 });
 export type VectoriseLogoInput = z.infer<typeof VectoriseLogoInputSchema>;
 
-const VectoriseLogoOutputSchema = z.object({
-    vectorLogoUrl: z.string().describe('The URL of the generated SVG vector logo.'),
-});
-export type VectoriseLogoOutput = z.infer<typeof VectoriseLogoOutputSchema>;
+export type VectoriseLogoOutput = {
+    vectorLogoUrl: string;
+};
 
 export async function vectoriseLogo(
     input: VectoriseLogoInput
@@ -32,14 +31,14 @@ export async function vectoriseLogo(
     });
 
     try {
-        const result: any = await fal.subscribe("fal-ai/recraft/vectorize", {
+        const result = await fal.subscribe("fal-ai/recraft/vectorize", {
             input: {
                 image_url: parsed.logoUrl,
             },
             logs: true,
-            onQueueUpdate: (update: any) => {
+            onQueueUpdate: (update) => {
                 if (update.status === "IN_PROGRESS") {
-                    update.logs?.map((log: any) => log.message).forEach(console.log);
+                    update.logs?.map((log) => log.message).forEach(console.log);
                 }
             },
         });
@@ -75,9 +74,10 @@ export async function vectoriseLogo(
         console.log('[vectorise-logo] Vector converted to data URI, size:', buffer.byteLength, 'bytes');
         return { vectorLogoUrl: dataUri };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[vectorise-logo] Error:', error);
-        const errorDetails = error.body ? JSON.stringify(error.body) : error.message;
+        const err = error as { body?: unknown; message?: string };
+        const errorDetails = err.body ? JSON.stringify(err.body) : err.message;
         throw new Error(`Fal vectorization failed: ${errorDetails}`);
     }
 }

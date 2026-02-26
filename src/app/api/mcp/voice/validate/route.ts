@@ -102,10 +102,10 @@ Be specific and actionable in your feedback.
     }
 
     return NextResponse.json(response.output);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('MCP Voice Validate Error:', error);
 
-    if (error.message === 'Unauthorized') {
+    if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json(
         { error: 'Invalid API key' },
         { status: 401 }

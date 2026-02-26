@@ -21,11 +21,8 @@ export function HomeClient() {
 
     // Handle the redirect result from Google Sign-In when the component mounts
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const hasAuthParams = urlParams.has('apiKey') || urlParams.has('authType') || urlParams.has('eventId');
-
         if (auth) {
-            setIsProcessingRedirect(true);
+            setIsProcessingRedirect(true); // eslint-disable-line react-hooks/set-state-in-effect -- Auth redirect processing
             handleRedirectResult(auth)
                 .then(result => {
                     if (result) {

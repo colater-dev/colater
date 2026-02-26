@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     const brandData = brandDoc.data()!;
-    const response: any = {};
+    const response: Record<string, unknown> = {};
 
     // Get logos
     if (assetTypes.includes('logo')) {
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
           url: brandData.logoUrl || primaryLogo?.logoUrl || '',
           dimensions: { width: 512, height: 512 },
         },
-        variations: logos.map((logo: any, index: number) => ({
+        variations: logos.map((logo: Record<string, unknown>, index: number) => ({
           id: index.toString(),
           type: index === 0 ? 'color' : 'bw',
           url: logo.logoUrl,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       const palette = colorVersions.length > 0 ? colorVersions[0].palette : ['#000000'];
 
       const colorFormat = format?.colors || 'hex';
-      const colorsData: any = {
+      const colorsData: Record<string, unknown> = {
         usage: palette.map((hex: string, index: number) => ({
           color: hex,
           name: `Color ${index + 1}`,
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
           return rgbToHsl(rgb.r, rgb.g, rgb.b);
         });
       } else if (colorFormat === 'tailwind') {
-        colorsData.tailwind = palette.reduce((acc: any, hex: string, index: number) => {
+        colorsData.tailwind = palette.reduce((acc: Record<string, string>, hex: string, index: number) => {
           acc[`brand-${index === 0 ? 'primary' : `accent-${index}`}`] = hex;
           return acc;
         }, {});
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
           .map((hex: string, index: number) => `  --brand-${index === 0 ? 'primary' : `accent-${index}`}: ${hex};`)
           .join('\n')}\n}`;
       } else if (colorFormat === 'figma') {
-        colorsData.figma = palette.reduce((acc: any, hex: string, index: number) => {
+        colorsData.figma = palette.reduce((acc: Record<string, { r: number; g: number; b: number; a: number }>, hex: string, index: number) => {
           const rgb = hexToRgb(hex);
           acc[`brand-${index === 0 ? 'primary' : `accent-${index}`}`] = {
             r: rgb.r / 255,
@@ -170,28 +170,28 @@ export async function POST(request: NextRequest) {
       const fontName = brandData.font || 'Inter';
       const fontFormat = format?.fonts || 'names';
 
-      const fontsData: any = {
-        primary: {
-          name: fontName,
-          weights: [400, 600, 700],
-        },
-        fallbacks: ['system-ui', 'sans-serif'],
+      const primary: Record<string, unknown> = {
+        name: fontName,
+        weights: [400, 600, 700],
       };
 
       if (fontFormat === 'google_fonts_url') {
-        fontsData.primary.googleFontsUrl = `https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}:wght@400;600;700&display=swap`;
+        primary.googleFontsUrl = `https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}:wght@400;600;700&display=swap`;
       } else if (fontFormat === 'css_imports') {
-        fontsData.primary.cssImport = `@import url('https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}:wght@400;600;700&display=swap');`;
+        primary.cssImport = `@import url('https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}:wght@400;600;700&display=swap');`;
       }
 
-      response.fonts = fontsData;
+      response.fonts = {
+        primary,
+        fallbacks: ['system-ui', 'sans-serif'],
+      };
     }
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('MCP Assets Get Error:', error);
 
-    if (error.message === 'Unauthorized') {
+    if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json(
         { error: 'Invalid API key' },
         { status: 401 }

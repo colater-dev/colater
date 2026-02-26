@@ -5,7 +5,6 @@ import {
   balanceToDisplaySettings,
   type LogoAnalysisResult,
   type WordmarkAnalysisResult,
-  type BalanceResult,
 } from '../logo-analysis';
 
 /**

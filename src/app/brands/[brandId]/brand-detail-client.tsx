@@ -10,8 +10,6 @@ import {
     updateDoc,
     addDoc,
     doc,
-    writeBatch,
-    getDocs,
 } from 'firebase/firestore';
 import { useUser, useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import {
@@ -415,7 +413,7 @@ export function BrandDetailClient() {
                 generateConceptBackground();
             }
         }
-    }, [logos?.length, generateConceptBackground]);
+    }, [logos?.length, generateConceptBackground]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleColorizeLogo = useCallback(async () => {
         if (!currentLogo || !user || !firestore || !brand) return;
@@ -574,14 +572,14 @@ export function BrandDetailClient() {
         if (logos && logos.length > 0) {
             setCurrentLogoIndex(logos.length - 1);
         }
-    }, [logos?.length]);
+    }, [logos?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (logos && logos.length > 0 && brandRef && currentLogo) {
             const logoToDisplay = currentLogo.colorLogoUrl || currentLogo.logoUrl;
             const settingsToDisplay = currentLogo.displaySettings;
 
-            const updates: any = {};
+            const updates: Record<string, unknown> = {};
             if (logoToDisplay !== brand?.logoUrl) {
                 updates.logoUrl = logoToDisplay;
             }

@@ -12,7 +12,7 @@ import {
     writeBatch,
     getDocs,
 } from 'firebase/firestore';
-import { useUser, useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { getTaglineSuggestions } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -133,7 +133,7 @@ export function TaglinesClient() {
                         );
                         if (docSnap.id === taglineId) {
                             batch.update(ref, { status: 'liked' });
-                        } else if ((docSnap.data() as any).status === 'liked') {
+                        } else if ((docSnap.data() as Record<string, unknown>).status === 'liked') {
                             batch.update(ref, { status: 'generated' });
                         }
                     });

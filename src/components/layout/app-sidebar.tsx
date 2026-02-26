@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Folder, Palette, Users, PlusCircle, Sparkles } from 'lucide-react';
+import { Folder, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth, useUser, initiateSmartGoogleSignIn, handleRedirectResult } from '@/firebase';
 import { WelcomeHero } from '@/features/onboarding/components/welcome-hero';
 import { FeaturesSection } from '@/features/onboarding/components/features-section';
-import { motion } from 'framer-motion';
-import { ArrowRight, Users, Loader2, LayoutDashboard } from "lucide-react";
+import { ArrowRight, Loader2, LayoutDashboard } from "lucide-react";
 import Link from 'next/link';
 
 export function LandingPageClient() {

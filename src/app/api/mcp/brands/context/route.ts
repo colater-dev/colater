@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { brandId, sections, includeAssets } = BrandContextRequestSchema.parse(body);
+    const { brandId, sections } = BrandContextRequestSchema.parse(body);
 
     // Fetch brand from Firestore
     const brandDoc = await adminDb
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Build response based on requested sections
-    const response: any = {
+    const response: Record<string, unknown> = {
       brand: {
         id: brandDoc.id,
         name: brandData.latestName,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
           primary: brandData.logoUrl || primaryLogo?.logoUrl || '',
           icon: brandData.logoUrl || primaryLogo?.logoUrl || '',
           wordmark: brandData.logoUrl || primaryLogo?.logoUrl || '',
-          variations: logos.map((logo: any, index: number) => ({
+          variations: logos.map((logo: Record<string, unknown>, index: number) => ({
             id: logo.id,
             url: logo.logoUrl,
             type: index === 0 ? 'primary' : 'bw',
@@ -162,10 +162,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('MCP Brand Context Error:', error);
 
-    if (error.message === 'Unauthorized') {
+    if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json(
         { error: 'Invalid API key' },
         { status: 401 }

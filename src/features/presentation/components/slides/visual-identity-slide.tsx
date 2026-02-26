@@ -11,7 +11,7 @@ interface VisualIdentitySlideProps {
     palette: string[];
 }
 
-export function VisualIdentitySlide({ brand, logo, palette }: VisualIdentitySlideProps) {
+export function VisualIdentitySlide({ logo, palette }: VisualIdentitySlideProps) {
     const colorLogoUrl = logo?.colorLogoUrl || (logo?.colorVersions && logo.colorVersions[0]?.colorLogoUrl) || logo?.logoUrl;
     const monochromeLogoUrl = logo?.logoUrl;
     const invertLogoSetting = !!logo?.displaySettings?.invertLogo;

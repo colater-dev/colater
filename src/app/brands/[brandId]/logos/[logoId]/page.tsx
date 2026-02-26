@@ -8,7 +8,7 @@ type Props = {
 export async function generateMetadata(
     { params }: Props
 ): Promise<Metadata> {
-    const { brandId, logoId } = await params;
+    await params;
 
     return {
         title: 'Logo Generation',

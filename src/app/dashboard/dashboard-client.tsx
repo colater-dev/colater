@@ -9,7 +9,7 @@ import { createBrandService } from '@/services';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Loader2, Plus, Presentation, Star } from 'lucide-react';
+import { Loader2, Plus, Star } from 'lucide-react';
 import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UploadLogoCard } from '@/components/dashboard/upload-logo-card';
 import type { Brand } from '@/lib/types';
@@ -91,7 +91,7 @@ const BrandListItem = ({ brand }: { brand: Brand }) => {
                                     style={{
                                         fontFamily: `var(${fontVariable}), sans-serif`,
                                         fontSize: `${fontSize}px`,
-                                        textTransform: textTransform === 'none' ? 'none' : textTransform === 'capitalize' ? 'capitalize' : textTransform as any,
+                                        textTransform: textTransform as React.CSSProperties['textTransform'],
                                         fontWeight: 700
                                     }}
                                 >

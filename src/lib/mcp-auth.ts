@@ -106,7 +106,7 @@ export async function validateMCPApiKey(): Promise<MCPAuthResult> {
       keyDoc.ref.update({
         lastUsedAt: FieldValue.serverTimestamp(),
         usageCount: (keyData.usageCount || 0) + 1,
-      }).catch((err: any) => console.error('Failed to update API key usage:', err));
+      }).catch((err: unknown) => console.error('Failed to update API key usage:', err));
 
       return {
         valid: true,
@@ -124,13 +124,13 @@ export async function validateMCPApiKey(): Promise<MCPAuthResult> {
         userId: decodedToken.uid,
         // No brandId or permissions - legacy auth
       };
-    } catch (tokenError) {
+    } catch {
       return {
         valid: false,
         error: 'Invalid API key or token',
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('MCP API key validation error:', error);
     return {
       valid: false,

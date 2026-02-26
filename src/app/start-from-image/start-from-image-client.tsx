@@ -129,7 +129,7 @@ export function StartFromImageClient() {
             });
 
             router.push(`/brands/${brandId}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating brand:', error);
             toast({
                 variant: 'destructive',

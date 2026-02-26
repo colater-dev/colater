@@ -412,7 +412,7 @@ function AnimateIcon({
 
   const content = asChild ? (
     <Slot
-      ref={slotRef as any}
+      ref={slotRef as unknown as React.Ref<HTMLElement>}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onPointerDown={handlePointerDown}

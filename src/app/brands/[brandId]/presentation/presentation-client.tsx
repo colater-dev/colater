@@ -4,16 +4,21 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useCollection, useUser, useAuth, useMemoFirebase } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
-import { createBrandService, createLogoService, createPresentationService } from '@/services';
+import { createPresentationService } from '@/services';
 import type { Brand, Logo, Presentation } from '@/lib/types';
+
+type CoverContent = { brandName: string; tagline: string; clientName?: string; backgroundColor?: string };
+type ChallengeContent = { challengeTitle: string; problemStatement: string; marketContext: string };
+type SolutionContent = { solutionStatement: string; keyAttributes: string[]; targetAudienceStatement: string };
+type ColorStoryContent = { colorPhilosophy: string; colorUsage: Array<{ color: string; name: string; usage: string }> };
+type NextStepsContent = { deliverablesList: string[]; nextStepsStatement: string; closingMessage: string };
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
-    X, Loader2, Smartphone, Send, Maximize2, Type,
-    Share2, Edit3, Eye, MoreHorizontal, ChevronLeft, ChevronRight, Save, Link as LinkIcon, Check,
+    Loader2,
+    Share2, Edit3, Eye, ChevronLeft, ChevronRight, Save, Link as LinkIcon, Check,
     Download
 } from 'lucide-react';
-import { useSidebar } from '@/components/layout/sidebar-context';
 import { getPresentationNarrative } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import * as Slides from '@/features/presentation/components/slides';
@@ -39,12 +44,8 @@ export default function PresentationClient() {
     const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { toggleOpen } = useSidebar();
-
     const { balance: creditBalance, creditsService } = useCredits();
 
-    const brandService = useMemo(() => createBrandService(firestore), [firestore]);
-    const logoService = useMemo(() => createLogoService(firestore), [firestore]);
     const presentationService = useMemo(() => createPresentationService(firestore), [firestore]);
 
     const brandDocRef = useMemoFirebase(
@@ -59,14 +60,13 @@ export default function PresentationClient() {
     );
 
     const { data: brand, isLoading: brandLoading } = useDoc<Brand>(brandDocRef);
-    const { data: logos, isLoading: logosLoading } = useCollection<Logo>(logosColRef);
+    const { data: logos } = useCollection<Logo>(logosColRef);
 
     const [presentation, setPresentation] = useState<Presentation | null>(null);
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [isSharing, setIsSharing] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -152,7 +152,7 @@ export default function PresentationClient() {
         };
 
         loadPresentation();
-    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, creditsService, auth]);
+    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, creditsService, auth]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Keyboard Navigation
     useEffect(() => {
@@ -182,7 +182,7 @@ export default function PresentationClient() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isEditing, presentation, router]);
 
-    const handleUpdateSlideContent = (slideId: string, updates: any) => {
+    const handleUpdateSlideContent = (slideId: string, updates: Record<string, unknown>) => {
         if (!presentation) return;
         const newSlides = presentation.slides.map(s =>
             s.slideId === slideId ? { ...s, content: { ...s.content, ...updates } } : s
@@ -197,7 +197,7 @@ export default function PresentationClient() {
             const id = await presentationService.savePresentation(user.uid, brandId, presentation);
             setPresentation({ ...presentation, id });
             toast({ title: "Saved", description: "Presentation updated successfully." });
-        } catch (error) {
+        } catch {
             toast({ title: "Save Failed", description: "Please try again.", variant: "destructive" });
         } finally {
             setIsSaving(false);
@@ -206,7 +206,6 @@ export default function PresentationClient() {
 
     const handleShare = async () => {
         if (!user || !brandId || !presentation) return;
-        setIsSharing(true);
         try {
             // First save if needed
             const id = presentation.id || await presentationService.savePresentation(user.uid, brandId, presentation);
@@ -215,10 +214,8 @@ export default function PresentationClient() {
             const token = presentation.shareToken || await presentationService.makePublic(user.uid, brandId, id);
             const url = `${window.location.origin}/p/${token}`;
             setShareUrl(url);
-        } catch (error) {
+        } catch {
             toast({ title: "Sharing Failed", description: "Could not generate share link.", variant: "destructive" });
-        } finally {
-            setIsSharing(false);
         }
     };
 
@@ -274,20 +271,20 @@ export default function PresentationClient() {
             logo: activeLogo,
             palette: activePalette,
             isEditing,
-            onUpdate: (updates: any) => handleUpdateSlideContent(currentSlide.slideId, updates),
+            onUpdate: (updates: Record<string, unknown>) => handleUpdateSlideContent(currentSlide.slideId, updates),
         };
 
         const content = currentSlide.content;
 
         switch (currentSlide.slideId) {
-            case 'cover': return <Slides.CoverSlide {...baseProps} content={content as any} palette={activePalette} />;
-            case 'challenge': return <Slides.ChallengeSlide {...baseProps} content={content as any} />;
-            case 'solution': return <Slides.SolutionSlide {...baseProps} content={content as any} />;
+            case 'cover': return <Slides.CoverSlide {...baseProps} content={content as unknown as CoverContent} palette={activePalette} />;
+            case 'challenge': return <Slides.ChallengeSlide {...baseProps} content={content as unknown as ChallengeContent} />;
+            case 'solution': return <Slides.SolutionSlide {...baseProps} content={content as unknown as SolutionContent} />;
             case 'logo-reveal': return <Slides.LogoRevealSlide {...baseProps} palette={activePalette} />;
             case 'visual-identity': return <Slides.VisualIdentitySlide {...baseProps} />;
-            case 'color-story': return <Slides.ColorStorySlide {...baseProps} content={content as any} />;
+            case 'color-story': return <Slides.ColorStorySlide {...baseProps} content={content as unknown as ColorStoryContent} />;
             case 'applications': return <Slides.ApplicationsSlide {...baseProps} />;
-            case 'next-steps': return <Slides.NextStepsSlide {...baseProps} content={content as any} />;
+            case 'next-steps': return <Slides.NextStepsSlide {...baseProps} content={content as unknown as NextStepsContent} />;
             default: return null;
         }
     };
@@ -445,14 +442,14 @@ export default function PresentationClient() {
                     return (
                         <div key={slide.slideId} data-slide={slide.slideId} className="w-[1200px] aspect-[16/10] bg-white overflow-hidden">
                             <ErrorBoundary section={`Export: ${slide.slideId}`}>
-                                {slide.slideId === 'cover' && <Slides.CoverSlide {...baseProps} content={content as any} palette={activePalette} />}
-                                {slide.slideId === 'challenge' && <Slides.ChallengeSlide {...baseProps} content={content as any} />}
-                                {slide.slideId === 'solution' && <Slides.SolutionSlide {...baseProps} content={content as any} />}
+                                {slide.slideId === 'cover' && <Slides.CoverSlide {...baseProps} content={content as unknown as CoverContent} palette={activePalette} />}
+                                {slide.slideId === 'challenge' && <Slides.ChallengeSlide {...baseProps} content={content as unknown as ChallengeContent} />}
+                                {slide.slideId === 'solution' && <Slides.SolutionSlide {...baseProps} content={content as unknown as SolutionContent} />}
                                 {slide.slideId === 'logo-reveal' && <Slides.LogoRevealSlide {...baseProps} palette={activePalette} />}
                                 {slide.slideId === 'visual-identity' && <Slides.VisualIdentitySlide {...baseProps} />}
-                                {slide.slideId === 'color-story' && <Slides.ColorStorySlide {...baseProps} content={content as any} />}
+                                {slide.slideId === 'color-story' && <Slides.ColorStorySlide {...baseProps} content={content as unknown as ColorStoryContent} />}
                                 {slide.slideId === 'applications' && <Slides.ApplicationsSlide {...baseProps} />}
-                                {slide.slideId === 'next-steps' && <Slides.NextStepsSlide {...baseProps} content={content as any} />}
+                                {slide.slideId === 'next-steps' && <Slides.NextStepsSlide {...baseProps} content={content as unknown as NextStepsContent} />}
                             </ErrorBoundary>
                         </div>
                     );

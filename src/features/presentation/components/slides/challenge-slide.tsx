@@ -1,6 +1,6 @@
 'use client';
 
-import { Brand, Logo } from '@/lib/types';
+import { Logo } from '@/lib/types';
 import { EditableText } from '../editable-text';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -12,7 +12,7 @@ interface ChallengeSlideProps {
         marketContext: string;
     };
     isEditing: boolean;
-    onUpdate: (updates: any) => void;
+    onUpdate: (updates: Record<string, string>) => void;
     logo?: Logo;
 }
 

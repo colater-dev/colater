@@ -104,7 +104,7 @@ export function GeneratingAnimation({ onComplete }: { onComplete: () => void }) 
             >
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-primary/60">Did you know?</span>
                 <p className="text-sm text-muted-foreground italic font-medium leading-relaxed">
-                    "{randomFact}"
+                    &quot;{randomFact}&quot;
                 </p>
             </motion.div>
         </div>

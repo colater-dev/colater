@@ -38,7 +38,7 @@ export const BrandApplications = memo(function BrandApplications({
             });
         }
         // Random rotation between 2 and 12 degrees (positive or negative)
-        setRotationFront((Math.random() * 10 + 2) * (Math.random() > 0.5 ? 1 : -1));
+        setRotationFront((Math.random() * 10 + 2) * (Math.random() > 0.5 ? 1 : -1)); // eslint-disable-line react-hooks/set-state-in-effect
         setRotationBack((Math.random() * 10 + 2) * (Math.random() > 0.5 ? 1 : -1));
     }, [logoUrl]);
 

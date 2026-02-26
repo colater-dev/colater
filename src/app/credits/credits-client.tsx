@@ -30,7 +30,7 @@ export default function CreditsClient() {
   );
   const { data: transactions } = useCollection<CreditTransaction>(transactionsQuery);
 
-  const handlePurchase = async (packageId: string, credits: number, label: string) => {
+  const handlePurchase = async (packageId: string, credits: number) => {
     if (!user) return;
     setPurchasingId(packageId);
     try {
@@ -126,7 +126,7 @@ export default function CreditsClient() {
                 ${(pkg.price / pkg.credits).toFixed(2)}/credit
               </p>
               <Button
-                onClick={() => handlePurchase(pkg.id, pkg.credits, pkg.label)}
+                onClick={() => handlePurchase(pkg.id, pkg.credits)}
                 disabled={purchasingId !== null}
                 className="w-full"
                 variant={pkg.popular ? 'default' : 'outline'}

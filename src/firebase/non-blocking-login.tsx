@@ -58,12 +58,13 @@ export async function initiateGoogleSignInWithPopup(authInstance: Auth): Promise
     const result = await signInWithPopup(authInstance, provider);
     console.log('Google sign-in successful:', result.user);
     // The onAuthStateChanged listener will handle the rest
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Google sign-in error:', error);
-    
+
+    const firebaseError = error as { code?: string };
     // In localhost, if popup fails, try redirect
     // On custom domains and production, always use redirect as it's more reliable
-    if (isLocalhost && (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user')) {
+    if (isLocalhost && (firebaseError.code === 'auth/popup-blocked' || firebaseError.code === 'auth/popup-closed-by-user')) {
       console.log('Popup blocked or closed, falling back to redirect...');
       signInWithRedirect(authInstance, provider);
     } else if (!isLocalhost || isCustomDomain) {
@@ -142,15 +143,16 @@ export async function handleRedirectResult(authInstance: Auth) {
       // This is normal - either the user visited the page directly or is already signed in
       return null;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle errors here, such as `auth/account-exists-with-different-credential`.
     console.error("Error handling redirect result:", error);
+    const firebaseError = error as { code?: string; message?: string; stack?: string };
     sessionStorage.setItem('auth-debug-error', JSON.stringify({
       timestamp: new Date().toISOString(),
       error: {
-        code: error?.code,
-        message: error?.message,
-        stack: error?.stack
+        code: firebaseError?.code,
+        message: firebaseError?.message,
+        stack: firebaseError?.stack
       }
     }));
     throw error;

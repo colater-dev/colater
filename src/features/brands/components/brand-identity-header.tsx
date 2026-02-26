@@ -19,9 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, MessageSquare, Type, Share2, Trash2, Presentation, Settings } from 'lucide-react';
-import { BRAND_FONTS } from '@/config/brand-fonts';
+import { Loader2, MessageSquare, Share2, Trash2, Presentation, Settings } from 'lucide-react';
 import type { Logo } from '@/lib/types';
 import { useState } from 'react';
 
@@ -49,7 +47,6 @@ export function BrandIdentityHeader({
   isGeneratingConcept,
   onGenerateConcept,
   logoConcept,
-  onConceptChange,
   selectedProvider,
   setSelectedProvider,
   isGeneratingLogo,

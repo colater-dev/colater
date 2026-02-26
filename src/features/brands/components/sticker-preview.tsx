@@ -34,6 +34,7 @@ export const StickerPreview = memo(function StickerPreview({ stickerUrl, brandNa
                 </div>
             )}
             {stickerUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={stickerUrl}
                     alt={`${label} logo`}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Brand, Logo } from '@/lib/types';
 import { EditableText } from '../editable-text';
 import { motion } from 'framer-motion';
 import { isLightColor } from '@/lib/color-utils';
@@ -16,7 +15,7 @@ interface ColorStorySlideProps {
         }>;
     };
     isEditing: boolean;
-    onUpdate: (updates: any) => void;
+    onUpdate: (updates: Record<string, unknown>) => void;
     palette: string[];
 }
 

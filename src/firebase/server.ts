@@ -30,6 +30,6 @@ if (!admin.apps.length && process.env.NODE_ENV !== 'test') {
   }
 }
 
-export const adminAuth = admin.apps.length > 0 ? admin.auth() : null as any;
-export const adminDb = admin.apps.length > 0 ? admin.firestore() : null as any;
-export const adminStorage = admin.apps.length > 0 ? admin.storage() : null as any;
+export const adminAuth = admin.apps.length > 0 ? admin.auth() : (null as unknown as admin.auth.Auth);
+export const adminDb = admin.apps.length > 0 ? admin.firestore() : (null as unknown as admin.firestore.Firestore);
+export const adminStorage = admin.apps.length > 0 ? admin.storage() : (null as unknown as admin.storage.Storage);

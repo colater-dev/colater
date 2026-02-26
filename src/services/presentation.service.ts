@@ -1,5 +1,5 @@
-import { Firestore, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, Timestamp, where, limit } from 'firebase/firestore';
-import { Presentation, PresentationSlide } from '@/lib/types';
+import { Firestore, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, Timestamp, limit } from 'firebase/firestore';
+import { Presentation } from '@/lib/types';
 
 export class PresentationService {
     constructor(private firestore: Firestore) { }
@@ -56,7 +56,7 @@ export class PresentationService {
         const publicRef = doc(this.firestore, `public_presentations/${token}`);
         const publicSnap = await getDoc(publicRef);
         if (publicSnap.exists()) {
-            const { userId, brandId, presentationId } = publicSnap.data() as any;
+            const { userId, brandId, presentationId } = publicSnap.data() as { userId: string; brandId: string; presentationId: string };
             return this.getPresentation(userId, brandId, presentationId);
         }
         return null;
@@ -78,7 +78,7 @@ export class PresentationService {
         return token;
     }
 
-    async updateSlide(userId: string, brandId: string, presentationId: string, slideId: string, content: any): Promise<void> {
+    async updateSlide(userId: string, brandId: string, presentationId: string, slideId: string, content: Record<string, unknown>): Promise<void> {
         const presentation = await this.getPresentation(userId, brandId, presentationId);
         if (!presentation) return;
 

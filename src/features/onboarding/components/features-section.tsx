@@ -1,8 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Code, Zap, Download, Shield, RefreshCw, Boxes } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Zap, Download, Shield, RefreshCw } from 'lucide-react';
 
 export function FeaturesSection() {
     return (
@@ -99,9 +98,9 @@ export function FeaturesSection() {
                         className="p-8 rounded-2xl bg-white border border-gray-200"
                     >
                         <RefreshCw className="w-12 h-12 text-primary mb-4" />
-                        <h3 className="text-2xl font-bold mb-3">Iterate Until It's Perfect</h3>
+                        <h3 className="text-2xl font-bold mb-3">Iterate Until It&apos;s Perfect</h3>
                         <p className="text-muted-foreground mb-4">
-                            Don't settle for the first result. Regenerate assets, adjust colors, and refine your
+                            Don&apos;t settle for the first result. Regenerate assets, adjust colors, and refine your
                             messaging until everything feels exactly right.
                         </p>
                         <ul className="space-y-2 text-sm text-muted-foreground">

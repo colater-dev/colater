@@ -3,16 +3,14 @@
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 
-const CritiqueLogoInputSchema = z.object({
-    logoUrl: z.string(),
-    brandName: z.string(),
-    elevatorPitch: z.string(),
-    audience: z.string(),
-    desirableCues: z.string().optional(),
-    undesirableCues: z.string().optional(),
-});
-
-export type CritiqueLogoInput = z.infer<typeof CritiqueLogoInputSchema>;
+export type CritiqueLogoInput = {
+    logoUrl: string;
+    brandName: string;
+    elevatorPitch: string;
+    audience: string;
+    desirableCues?: string;
+    undesirableCues?: string;
+};
 
 const CritiqueSchema = z.object({
     overallSummary: z.string().describe('A brief summary of the overall impression of the logo'),

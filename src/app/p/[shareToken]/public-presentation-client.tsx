@@ -3,13 +3,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useDoc, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
-import { createBrandService, createLogoService, createPresentationService } from '@/services';
+import { createPresentationService } from '@/services';
 import type { Brand, Logo, Presentation } from '@/lib/types';
+
+type CoverContent = { brandName: string; tagline: string; clientName?: string; backgroundColor?: string };
+type ChallengeContent = { challengeTitle: string; problemStatement: string; marketContext: string };
+type SolutionContent = { solutionStatement: string; keyAttributes: string[]; targetAudienceStatement: string };
+type ColorStoryContent = { colorPhilosophy: string; colorUsage: Array<{ color: string; name: string; usage: string }> };
+type NextStepsContent = { deliverablesList: string[]; nextStepsStatement: string; closingMessage: string };
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
-    Loader2, ChevronLeft, ChevronRight, Share2, Download,
-    Maximize2, Smartphone
+    Loader2, ChevronLeft, ChevronRight, Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as Slides from '@/features/presentation/components/slides';
@@ -42,7 +47,7 @@ export default function PublicPresentationClient({ shareToken }: PublicPresentat
                 } else {
                     setError("Presentation not found or no longer public.");
                 }
-            } catch (e) {
+            } catch {
                 setError("Failed to load presentation.");
             } finally {
                 setLoading(false);
@@ -121,14 +126,14 @@ export default function PublicPresentationClient({ shareToken }: PublicPresentat
         const content = currentSlide.content;
 
         switch (currentSlide.slideId) {
-            case 'cover': return <Slides.CoverSlide {...baseProps} content={content as any} />;
-            case 'challenge': return <Slides.ChallengeSlide {...baseProps} content={content as any} />;
-            case 'solution': return <Slides.SolutionSlide {...baseProps} content={content as any} />;
+            case 'cover': return <Slides.CoverSlide {...baseProps} content={content as unknown as CoverContent} />;
+            case 'challenge': return <Slides.ChallengeSlide {...baseProps} content={content as unknown as ChallengeContent} />;
+            case 'solution': return <Slides.SolutionSlide {...baseProps} content={content as unknown as SolutionContent} />;
             case 'logo-reveal': return <Slides.LogoRevealSlide {...baseProps} />;
             case 'visual-identity': return <Slides.VisualIdentitySlide {...baseProps} />;
-            case 'color-story': return <Slides.ColorStorySlide {...baseProps} content={content as any} />;
+            case 'color-story': return <Slides.ColorStorySlide {...baseProps} content={content as unknown as ColorStoryContent} />;
             case 'applications': return <Slides.ApplicationsSlide {...baseProps} />;
-            case 'next-steps': return <Slides.NextStepsSlide {...baseProps} content={content as any} />;
+            case 'next-steps': return <Slides.NextStepsSlide {...baseProps} content={content as unknown as NextStepsContent} />;
             default: return null;
         }
     };
@@ -227,14 +232,14 @@ export default function PublicPresentationClient({ shareToken }: PublicPresentat
 
                     return (
                         <div key={slide.slideId} data-slide={slide.slideId} className="w-[1200px] aspect-[16/10] bg-white overflow-hidden">
-                            {slide.slideId === 'cover' && <Slides.CoverSlide {...baseProps} content={content as any} />}
-                            {slide.slideId === 'challenge' && <Slides.ChallengeSlide {...baseProps} content={content as any} />}
-                            {slide.slideId === 'solution' && <Slides.SolutionSlide {...baseProps} content={content as any} />}
+                            {slide.slideId === 'cover' && <Slides.CoverSlide {...baseProps} content={content as unknown as CoverContent} />}
+                            {slide.slideId === 'challenge' && <Slides.ChallengeSlide {...baseProps} content={content as unknown as ChallengeContent} />}
+                            {slide.slideId === 'solution' && <Slides.SolutionSlide {...baseProps} content={content as unknown as SolutionContent} />}
                             {slide.slideId === 'logo-reveal' && <Slides.LogoRevealSlide {...baseProps} />}
                             {slide.slideId === 'visual-identity' && <Slides.VisualIdentitySlide {...baseProps} />}
-                            {slide.slideId === 'color-story' && <Slides.ColorStorySlide {...baseProps} content={content as any} />}
+                            {slide.slideId === 'color-story' && <Slides.ColorStorySlide {...baseProps} content={content as unknown as ColorStoryContent} />}
                             {slide.slideId === 'applications' && <Slides.ApplicationsSlide {...baseProps} />}
-                            {slide.slideId === 'next-steps' && <Slides.NextStepsSlide {...baseProps} content={content as any} />}
+                            {slide.slideId === 'next-steps' && <Slides.NextStepsSlide {...baseProps} content={content as unknown as NextStepsContent} />}
                         </div>
                     );
                 })}

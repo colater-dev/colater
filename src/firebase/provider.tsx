@@ -70,7 +70,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
     if (!auth) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
+      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") }); // eslint-disable-line react-hooks/set-state-in-effect -- Auth subscription pattern
       return;
     }
 
@@ -161,7 +161,7 @@ export const useFirebaseApp = (): FirebaseApp => {
 type MemoFirebase<T> = T & { __memo?: boolean };
 
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
-  const memoized = useMemo(factory, deps);
+  const memoized = useMemo(factory, deps); // eslint-disable-line react-hooks/use-memo, react-hooks/exhaustive-deps -- Wrapper proxies useMemo args from caller
 
   if (typeof memoized !== 'object' || memoized === null) return memoized;
   (memoized as MemoFirebase<T>).__memo = true;

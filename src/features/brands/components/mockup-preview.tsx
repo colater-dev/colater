@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { DownloadButton } from './download-button';
 
 interface MockupPreviewProps {
     logoUrl: string | null;
@@ -13,19 +12,9 @@ interface MockupPreviewProps {
 export const MockupPreview = memo(function MockupPreview({
     logoUrl,
     mockupImage,
-    brandName,
     label,
     className,
-    invert = false
 }: MockupPreviewProps) {
-    const handleDownload = () => {
-        if (!logoUrl) return;
-        const link = document.createElement('a');
-        link.download = `${brandName.replace(/\s+/g, '-').toLowerCase()}-${label.toLowerCase().replace(/\s+/g, '-')}.png`;
-        link.href = logoUrl;
-        link.click();
-    };
-
     return (
         <div
             className={`relative aspect-square flex items-center justify-center group overflow-hidden ${className}`}
@@ -42,6 +31,7 @@ export const MockupPreview = memo(function MockupPreview({
             */}
 
             {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={logoUrl}
                     alt={`${label} logo`}

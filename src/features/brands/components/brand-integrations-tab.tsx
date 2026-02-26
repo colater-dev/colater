@@ -16,7 +16,6 @@ import {
   Copy,
   Check,
   Play,
-  Terminal,
   Loader2,
   ChevronRight,
   Zap,
@@ -251,7 +250,7 @@ function SetupStep({
 
 // --- Main Component ---
 
-export function BrandIntegrationsTab({ brandId, brandName, userId }: BrandIntegrationsTabProps) {
+export function BrandIntegrationsTab({ brandId, brandName }: BrandIntegrationsTabProps) {
   const { toast } = useToast();
   const auth = useAuth();
   const endpoints = getEndpoints(brandId);

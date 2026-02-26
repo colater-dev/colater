@@ -2,7 +2,6 @@
 "use server";
 
 import { generateTaglines } from "@/ai/flows/generate-tagline";
-import { generateLogo } from "@/ai/flows/generate-logo";
 import { generateBrandDetails, type GenerateBrandDetailsOutput } from "@/ai/flows/generate-brand-details";
 import { colorizeLogo, ColorizeLogoInput } from "@/ai/flows/colorize-logo";
 import { generateLogoOpenAI } from "@/ai/flows/generate-logo-openai";

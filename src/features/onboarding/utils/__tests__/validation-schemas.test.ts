@@ -165,21 +165,25 @@ describe('onboardingSchema (merged)', () => {
   });
 
   it('rejects when brand name is missing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { brandName, ...rest } = validData;
     expect(onboardingSchema.safeParse(rest).success).toBe(false);
   });
 
   it('rejects when elevator pitch is missing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { elevatorPitch, ...rest } = validData;
     expect(onboardingSchema.safeParse(rest).success).toBe(false);
   });
 
   it('rejects when target audience is missing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { targetAudience, ...rest } = validData;
     expect(onboardingSchema.safeParse(rest).success).toBe(false);
   });
 
   it('rejects when desirable styles is missing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { desirableStyles, ...rest } = validData;
     expect(onboardingSchema.safeParse(rest).success).toBe(false);
   });
