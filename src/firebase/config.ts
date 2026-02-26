@@ -1,15 +1,23 @@
 
 import { initializeApp, getApps, FirebaseApp, getApp } from "firebase/app";
 
-// This is a public configuration and can be safely exposed.
-// Security is enforced by Firestore and Storage security rules.
+// Security is enforced by Firestore and Storage security rules,
+// but we still require env vars to avoid silently using wrong project.
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}. Check your .env file.`);
+  }
+  return value;
+}
+
 const baseConfig = {
-  "projectId": process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-6830756272-ca1a2",
-  "appId": process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:251098089151:web:7dfc5b869ff6e11af6e80a",
-  "apiKey": process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCVNej025Wh4yX0SP_Vl0ODl6Bq259CCFY",
-  "storageBucket": process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "studio-6830756272-ca1a2.firebasestorage.app",
-  "measurementId": "",
-  "messagingSenderId": process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "251098089151"
+  projectId: requireEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
+  appId: requireEnv('NEXT_PUBLIC_FIREBASE_APP_ID'),
+  apiKey: requireEnv('NEXT_PUBLIC_FIREBASE_API_KEY'),
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  measurementId: '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
 };
 
 // Simplified configuration - always use Firebase auth domain
