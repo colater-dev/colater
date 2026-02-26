@@ -46,36 +46,22 @@ export async function generateLogoFal(
     const cleanDesirableCues = parsed.desirableCues?.replace(/[\r\n]+/g, " ").trim() || "";
     const cleanUndesirableCues = parsed.undesirableCues?.replace(/[\r\n]+/g, " ").trim() || "";
 
-    console.log('[generate-logo-fal] Input details:', {
-        name: cleanName,
-        elevatorPitch: cleanPitch,
-        audience: cleanAudience,
-        desirableCues: cleanDesirableCues || '(none)',
-        undesirableCues: cleanUndesirableCues || '(none)',
-        hasConcept: !!parsed.concept,
-        model: parsed.model || 'fal-ai/ideogram/v3 (default)',
-    });
-
     let fullPrompt = "";
 
     // If concept is provided, use it directly (Concept + Style) and exclude elevator pitch
     if (parsed.concept) {
-        console.log('[generate-logo-fal] Using provided concept');
         // Extract style prompt and concept
         const stylePromptMatch = parsed.concept.match(/Style Prompt:\s*([\s\S]+)/);
         if (stylePromptMatch) {
             const stylePrompt = stylePromptMatch[1].trim();
             const concept = parsed.concept.replace(stylePromptMatch[0], '').trim();
             fullPrompt = `${concept} ${stylePrompt}`;
-            console.log('[generate-logo-fal] Using concept + style prompt (no pitch)');
         } else {
             // If no "Style Prompt:" marker, use the entire concept
             fullPrompt = parsed.concept.trim();
-            console.log('[generate-logo-fal] Using entire concept as prompt (no pitch)');
         }
     } else {
         // Fallback: Generate brand-specific style prompt using genkit
-        console.log('[generate-logo-fal] Generating style prompt using genkit');
         const stylePromptPrompt = `You are an expert brand designer. Based on the following brand information, describe the logo concept and create a detailed stylePrompt that can be used for ideogram image generation.
 
 Brand Name: ${cleanName}
@@ -93,16 +79,13 @@ Describe the logo concept as a brand designer would, focusing on:
 
 Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for image generation. It should be specific, actionable, and focused on visual design elements without any abstract concepts. Do not include the brand name or pitch in the Prompt - focus purely on the visual style and design characteristics.`;
 
-        console.log('[generate-logo-fal] Genkit style prompt request:', stylePromptPrompt);
-
         let aiStylePrompt = "";
         try {
             const genkitResponse = await ai.generate({
-                model: 'googleai/gemini-3-flash-preview',
+                model: 'anthropic/claude-sonnet-4-5-20250929',
                 prompt: stylePromptPrompt,
             });
             aiStylePrompt = genkitResponse.text || "";
-            console.log('[generate-logo-fal] AI-generated style prompt:', aiStylePrompt);
         } catch (error: any) {
             console.error('[generate-logo-fal] Error generating style prompt:', error);
             aiStylePrompt = "";
@@ -110,8 +93,6 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
 
         // Use AI-generated style prompt if available, otherwise fallback to base style requirements
         const combinedStylePrompt = aiStylePrompt || baseStylePrompt;
-        console.log('[generate-logo-fal] Base style prompt:', baseStylePrompt);
-        console.log('[generate-logo-fal] Combined style prompt:', combinedStylePrompt);
 
         fullPrompt = `${cleanPitch}. ${combinedStylePrompt}`;
     }
@@ -123,14 +104,10 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         console.warn(`[generate-logo-fal] Prompt truncated from ${originalPromptLength} to ${fullPrompt.length} characters`);
     }
 
-    console.log('[generate-logo-fal] Full prompt for Ideogram:', fullPrompt);
-    console.log('[generate-logo-fal] Full prompt length:', fullPrompt.length);
-
     const modelId = parsed.model || "fal-ai/ideogram/v3";
-    console.log(`[generate-logo-fal] Calling ${modelId}`);
 
     // Prepare input based on model
-    let modelInput: any = {
+    const modelInput: any = {
         prompt: fullPrompt,
     };
 
@@ -154,21 +131,14 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         const result: any = await fal.subscribe(modelId, {
             input: modelInput,
             logs: true,
-            onQueueUpdate: (update: any) => {
-                if (update.status === "IN_PROGRESS") {
-                    update.logs?.map((log: any) => log.message).forEach(console.log);
-                }
-            },
+            onQueueUpdate: () => {},
         });
-
-        console.log(`[generate-logo-fal] ${modelId} generation completed`);
 
         // Handle different response formats if necessary, but most Fal image models return { images: [{ url, ... }] }
         const imageUrl = result.data?.images?.[0]?.url;
         if (!imageUrl) {
             throw new Error('Fal did not return an image URL.');
         }
-        console.log('[generate-logo-fal] Image URL received:', imageUrl);
 
         // Fetch the image and convert to data URI
         const response = await fetch(imageUrl);
@@ -181,7 +151,6 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         const base64 = Buffer.from(buffer).toString('base64');
         const dataUri = `data:${contentType};base64,${base64}`;
 
-        console.log('[generate-logo-fal] Image converted to data URI, size:', buffer.byteLength, 'bytes');
         return { logoUrl: dataUri, prompt: fullPrompt };
     } catch (error: any) {
         console.error('[generate-logo-fal] Error:', error);
