@@ -6,18 +6,16 @@ import { CheckCircle2, Loader2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STEPS = [
-    { label: 'Analyzing your brand details', duration: 3000 },
-    { label: 'Crafting logo concept', duration: 4000 },
-    { label: 'Generating logo variations', duration: 6000 },
-    { label: 'Extracting color palette', duration: 3000 },
-    { label: 'Creating taglines', duration: 4000 },
+    { label: 'Setting up your brand workspace', duration: 1000 },
+    { label: 'Preparing AI tools', duration: 1000 },
+    { label: 'Redirecting to your brand...', duration: 500 },
 ];
 
 const FUN_FACTS = [
-    "Professional brand designers charge $500-5000 for this",
-    "Great logos are simple, memorable, and versatile",
-    "Color psychology influences how people perceive brands",
-    "The average person sees 5,000 logos per day",
+    "You can generate logos, taglines, and presentations in one click",
+    "All AI generation happens on-demand - nothing pre-generated",
+    "Claude AI helps create contextual brand suggestions",
+    "Your brand is being saved to your personal workspace",
 ];
 
 export function GeneratingAnimation({ onComplete }: { onComplete: () => void }) {

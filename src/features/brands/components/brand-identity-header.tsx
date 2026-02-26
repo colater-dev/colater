@@ -74,7 +74,7 @@ export function BrandIdentityHeader({
           {isGeneratingConcept ? (
             <>
               <Loader2 className="mr-2 animate-spin" />
-              Generating...
+              Writing concept...
             </>
           ) : (
             'Generate Brand Concept'
@@ -101,7 +101,7 @@ export function BrandIdentityHeader({
               {isGeneratingLogo ? (
                 <>
                   <Loader2 className="mr-2 animate-spin" />
-                  Generating...
+                  Creating logo...
                 </>
               ) : (
                 'Generate Logo'

@@ -67,7 +67,7 @@ export function TaglinesList({
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 animate-spin" />
-              Generating...
+              Writing taglines...
             </>
           ) : (
             <>
