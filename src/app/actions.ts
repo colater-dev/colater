@@ -15,6 +15,7 @@ import { generateStories, GenerateStoriesInput } from "@/ai/flows/generate-stori
 import { generatePresentationData, GeneratePresentationDataInput, type GeneratePresentationDataOutput } from "@/ai/flows/generate-presentation-data";
 import { justifyLogo, JustifyLogoInput, Justification } from "@/ai/flows/justify-logo";
 import { generatePresentationNarrative, PresentationNarrativeInput, PresentationNarrativeOutput } from "@/ai/flows/generate-presentation-narrative";
+import { generateAudienceSuggestions, GenerateAudienceSuggestionsInput, GenerateAudienceSuggestionsOutput } from "@/ai/flows/generate-audience-suggestions";
 
 export async function getTaglineSuggestions(
   name: string,
@@ -180,8 +181,45 @@ export async function getBrandSuggestions(topic: string): Promise<{ success: boo
   }
 }
 
+const ALLOWED_HOSTS = [
+  'firebasestorage.googleapis.com',
+  'storage.googleapis.com',
+  '.r2.dev',
+  '.fal.media',
+  '.fal.ai',
+  '.replicate.delivery',
+  '.replicate.com',
+];
+
+const BLOCKED_PATTERNS = [
+  /^https?:\/\/localhost/i,
+  /^https?:\/\/127\./,
+  /^https?:\/\/10\./,
+  /^https?:\/\/172\.(1[6-9]|2\d|3[01])\./,
+  /^https?:\/\/192\.168\./,
+  /^https?:\/\/169\.254\./,
+  /^https?:\/\/0\./,
+  /^https?:\/\/\[::1\]/,
+];
+
+function isAllowedUrl(url: string): boolean {
+  if (url.startsWith('data:')) return true;
+  try {
+    const parsed = new URL(url);
+    if (BLOCKED_PATTERNS.some(p => p.test(url))) return false;
+    return ALLOWED_HOSTS.some(h =>
+      h.startsWith('.') ? parsed.hostname.endsWith(h) : parsed.hostname === h
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function convertUrlToDataUri(url: string): Promise<{ success: boolean; data?: string; error?: string }> {
   try {
+    if (!isAllowedUrl(url)) {
+      return { success: false, error: 'URL not allowed. Only images from known storage providers are accepted.' };
+    }
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -360,6 +398,25 @@ export async function getPresentationNarrative(
     return {
       success: false,
       error: `An unexpected error occurred while generating presentation narrative: ${errorMessage}`,
+    };
+  }
+}
+
+export async function getAudienceSuggestions(
+  input: GenerateAudienceSuggestionsInput
+): Promise<{ success: boolean; data?: GenerateAudienceSuggestionsOutput; error?: string }> {
+  try {
+    if (!input.brandName || !input.elevatorPitch) {
+      return { success: false, error: "Brand name and elevator pitch are required." };
+    }
+    const result = await generateAudienceSuggestions(input);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Error generating audience suggestions:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return {
+      success: false,
+      error: `An unexpected error occurred while generating audience suggestions: ${errorMessage}`,
     };
   }
 }
