@@ -3,8 +3,9 @@
 import { useState, useMemo } from 'react';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { useCredits } from '@/hooks/use-credits';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useAuth, useCollection, useMemoFirebase } from '@/firebase';
 import { createCreditsService } from '@/services';
+import { purchaseCredits } from '@/app/actions';
 import { CREDIT_PACKAGES, CREDIT_COSTS, CREDIT_ACTION_LABELS } from '@/lib/credits';
 import type { CreditTransaction } from '@/lib/credits';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +18,7 @@ export default function CreditsClient() {
   const { user, isLoading: isAuthLoading } = useRequireAuth();
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const firestore = useFirestore();
+  const auth = useAuth();
   const { toast } = useToast();
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
@@ -32,17 +34,21 @@ export default function CreditsClient() {
     if (!user) return;
     setPurchasingId(packageId);
     try {
-      const newBalance = await creditsService.addCredits(user.uid, credits, label);
+      const idToken = await auth.currentUser?.getIdToken() ?? '';
+      const result = await purchaseCredits(idToken, packageId);
+      if (!result.success) {
+        throw new Error(result.error || 'Purchase failed');
+      }
       toast({
         title: `${credits} credits added!`,
-        description: `Your new balance is ${newBalance} credits.`,
+        description: `Your new balance is ${result.data?.newBalance} credits.`,
       });
     } catch (error) {
       console.error('Purchase failed:', error);
       toast({
         variant: 'destructive',
         title: 'Purchase Failed',
-        description: 'Could not complete the purchase. Please try again.',
+        description: error instanceof Error ? error.message : 'Could not complete the purchase. Please try again.',
       });
     } finally {
       setPurchasingId(null);

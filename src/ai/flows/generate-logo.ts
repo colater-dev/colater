@@ -3,6 +3,9 @@
 /**
  * @fileOverview Generates a logo for a brand using AI.
  *
+ * ⚠️ WARNING: This flow uses Google Imagen (gemini-3-pro-image-preview) which requires GOOGLE_GENAI_API_KEY.
+ * If you don't have Google AI credits, use generateLogoFal() or generateLogoOpenAI() instead.
+ *
  * - generateLogo - A function that generates a brand logo.
  * - GenerateLogoInput - The input type for the generateLogo function.
  * - GenerateLogoOutput - The return type for the generateLogo function.

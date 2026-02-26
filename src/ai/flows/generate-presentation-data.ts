@@ -54,7 +54,7 @@ export const generatePresentationData = ai.defineFlow(
     `;
 
         const response = await ai.generate({
-            model: 'googleai/gemini-3-flash-preview',
+            model: 'anthropic/claude-sonnet-4-5-20250929',
             prompt,
             output: { format: 'json', schema: GeneratePresentationDataOutputSchema },
         });

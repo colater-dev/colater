@@ -77,6 +77,7 @@ export async function generatePresentationNarrative(input: PresentationNarrative
 
     try {
         const result = await ai.generate({
+            model: 'anthropic/claude-sonnet-4-5-20250929',
             prompt,
             output: { schema: PresentationNarrativeOutputSchema },
         });

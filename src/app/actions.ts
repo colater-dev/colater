@@ -17,6 +17,9 @@ import { justifyLogo, JustifyLogoInput, Justification } from "@/ai/flows/justify
 import { generatePresentationNarrative, PresentationNarrativeInput, PresentationNarrativeOutput } from "@/ai/flows/generate-presentation-narrative";
 import { generateAudienceSuggestions, GenerateAudienceSuggestionsInput, GenerateAudienceSuggestionsOutput } from "@/ai/flows/generate-audience-suggestions";
 import { requireServerAuth, isAllowedUrl } from "@/lib/server-auth";
+import { adminDb } from "@/firebase/server";
+import { CREDIT_PACKAGES } from "@/lib/credits";
+import { FieldValue, type Transaction, type DocumentReference } from "firebase-admin/firestore";
 
 export async function getTaglineSuggestions(
   idToken: string,
@@ -52,24 +55,19 @@ export async function getLogoSuggestion(
   undesirableCues: string,
   concept?: string,
 ): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
-  console.log("getLogoSuggestion: Starting...");
   try {
     await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       console.error("getLogoSuggestion: Missing brand details.");
       return { success: false, error: "Brand details are required." };
     }
-    console.log("getLogoSuggestion: Brand details are present.");
 
     const result = await generateLogoFal({ name, elevatorPitch, audience, desirableCues, undesirableCues, concept });
-    console.log("getLogoSuggestion: AI generation complete.");
 
     if (!result || !result.logoUrl) {
       console.error("getLogoSuggestion: AI did not return a logoUrl.");
       throw new Error("AI image generation failed to return a result.");
     }
-    // Log the beginning of the data URI to confirm it's what we expect
-    console.log("getLogoSuggestion: Received data URI from AI:", result.logoUrl.substring(0, 100));
 
     // Return the data URI directly - upload will happen on client side
     return { success: true, data: { logoUrl: result.logoUrl, prompt: result.prompt } };
@@ -415,6 +413,66 @@ export async function getAudienceSuggestions(
       success: false,
       error: `An unexpected error occurred while generating audience suggestions: ${errorMessage}`,
     };
+  }
+}
+
+export async function purchaseCredits(
+  idToken: string,
+  packageId: string
+): Promise<{ success: boolean; data?: { newBalance: number }; error?: string }> {
+  try {
+    const { uid } = await requireServerAuth(idToken);
+
+    const pkg = CREDIT_PACKAGES.find(p => p.id === packageId);
+    if (!pkg) {
+      return { success: false, error: "Invalid package selected." };
+    }
+
+    const profileRef: DocumentReference = adminDb.collection("userProfiles").doc(uid);
+
+    const newBalance = await adminDb.runTransaction(async (transaction: Transaction) => {
+      const profileSnap = await transaction.get(profileRef);
+
+      let currentBalance = 0;
+      if (profileSnap.exists) {
+        currentBalance = profileSnap.data()?.balance ?? 0;
+      }
+
+      const balance = currentBalance + pkg.credits;
+
+      if (profileSnap.exists) {
+        transaction.update(profileRef, {
+          balance,
+          totalPurchased: FieldValue.increment(pkg.credits),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      } else {
+        transaction.set(profileRef, {
+          balance,
+          totalPurchased: pkg.credits,
+          totalUsed: 0,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+
+      return balance;
+    });
+
+    // Record transaction
+    await adminDb.collection(`userProfiles/${uid}/transactions`).add({
+      userId: uid,
+      amount: pkg.credits,
+      balance: newBalance,
+      action: "purchase",
+      description: `Purchased ${pkg.label} pack (${pkg.credits} credits)`,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    return { success: true, data: { newBalance } };
+  } catch (error) {
+    console.error("Error purchasing credits:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: `Purchase failed: ${errorMessage}` };
   }
 }
 

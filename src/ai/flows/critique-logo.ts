@@ -53,7 +53,7 @@ export async function critiqueLogo(input: CritiqueLogoInput): Promise<Critique &
 
     try {
         const result = await ai.generate({
-            model: 'googleai/gemini-3-flash-preview',
+            model: 'anthropic/claude-sonnet-4-5-20250929', // Claude Sonnet has vision capabilities
             prompt: [
                 { text: prompt },
                 { media: { url: logoUrl } }

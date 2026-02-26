@@ -1,7 +1,8 @@
 import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import {anthropic} from '@genkit-ai/anthropic';
 
 export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-3-flash-preview',
+  plugins: [anthropic()],
+  // Using Claude Sonnet 4.5 (latest Sonnet) - Note: Opus 4.6 is available but more expensive
+  model: 'anthropic/claude-sonnet-4-5-20250929',
 });
