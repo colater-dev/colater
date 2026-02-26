@@ -162,7 +162,8 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['balance', 'totalPurchased', 'totalUsed']);
       allow delete: if false;
 
       /**
@@ -187,7 +188,8 @@ service cloud.firestore {
     match /brands/{brandId} {
       allow get: if true;  // Public read access
       allow list: if false; // Prevent listing all brands
-      allow create, update: if isSignedIn(); // Authenticated users can write
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
 
       /**
        * @description Public logos collection for shareable logo pages.
@@ -199,7 +201,8 @@ service cloud.firestore {
       match /logos/{logoId} {
         allow get: if true;  // Public read access for shareable logos
         allow list: if false; // Prevent listing all logos
-        allow create, update: if isSignedIn(); // Authenticated users can write
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
         allow delete: if false; // Prevent deletion (keep in user's private collection only)
         
         /**
