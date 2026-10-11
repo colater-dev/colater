@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useStudioData } from '@/features/studio/hooks/use-studio-data';
 import { RoundBlock } from '@/features/studio/components/round-block';
 import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
-import { startRound, pickDirection } from '@/app/studio/actions';
+import { startRound, pickDirection, sweepStudio } from '@/app/studio/actions';
 import { CREDIT_COSTS } from '@/lib/credits';
 import { cn } from '@/lib/utils';
 
@@ -18,12 +19,22 @@ export function StudioClient({ brandId }: { brandId: string }) {
   const { toast } = useToast();
   const [chips, setChips] = useState<string[]>([]);
   const [isStarting, setIsStarting] = useState(false);
+  const [creditError, setCreditError] = useState<string | null>(null);
+  const roundIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (user) user.getIdToken().then(token => sweepStudio(token, brandId)).catch(console.error);
+  }, [user, brandId]);
 
   const newRound = async (seedDirectionId?: string) => {
     if (!user || isStarting) return;
     setIsStarting(true);
-    const res = await startRound(await user.getIdToken(), brandId, crypto.randomUUID().replace(/-/g, ''), { feedbackChips: chips, seedDirectionId });
-    if (!res.success) toast({ variant: 'destructive', title: 'Could not start a new round', description: res.error });
+    setCreditError(null);
+    roundIdRef.current ??= crypto.randomUUID().replace(/-/g, '');
+    const res = await startRound(await user.getIdToken(), brandId, roundIdRef.current, { feedbackChips: chips, seedDirectionId });
+    roundIdRef.current = null;
+    if (res.insufficient) setCreditError(res.error ?? 'Not enough credits');
+    else if (!res.success) toast({ variant: 'destructive', title: 'Could not start a new round', description: res.error });
     else setChips([]);
     setIsStarting(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -62,6 +73,9 @@ export function StudioClient({ brandId }: { brandId: string }) {
           </Button>
         </div>
       </header>
+      {creditError && (
+        <p className="text-sm text-muted-foreground">{creditError} <Link href="/credits" className="underline">Get credits</Link></p>
+      )}
       {rounds.length === 0 && <p className="text-muted-foreground">No directions yet. Press “New directions” to start.</p>}
       {rounds.map(({ round, directions }, i) => (
         <RoundBlock

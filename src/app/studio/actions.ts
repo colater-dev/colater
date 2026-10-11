@@ -16,9 +16,11 @@ import { renderMark } from '@/ai/studio/render-mark';
 import { pickFont } from '@/ai/studio/pick-font';
 import { uploadBufferToR2 } from '@/lib/r2-server';
 import { runRound } from '@/ai/studio/run-round';
+import { createRound } from '@/ai/studio/create-round';
+import { sweepStaleDirections } from '@/ai/studio/sweep-stale';
 import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
 
-type Result<T> = { success: boolean; data?: T; error?: string; insufficient?: boolean };
+type Result<T> = { success: boolean; data?: T; error?: string; insufficient?: boolean; needed?: number; balance?: number };
 const fail = (error: unknown): Result<never> => ({ success: false, error: error instanceof Error ? error.message : 'Something went wrong' });
 
 export async function suggestTags(idToken: string, name: string, pitch: string): Promise<Result<{ audience: string[]; style: string[] }>> {
@@ -84,33 +86,30 @@ export async function startRound(
     if (!brandSnap.exists) return { success: false, error: 'Brand not found' };
     const brand = brandSnap.data()!;
 
-    const roundRef = brandRef.collection('rounds').doc(clientRoundId);
-    if ((await roundRef.get()).exists) return { success: true, data: { roundId: clientRoundId } };
+    const credits = createServerCredits(adminDb);
+    await sweepStaleDirections(adminDb, credits, { uid, brandId }).catch(console.error);
 
     const feedbackChips = (options.feedbackChips ?? []).filter(c => (ROUND_FEEDBACK_CHIPS as readonly string[]).includes(c));
-    let seedIdea: string | undefined;
-    if (options.seedDirectionId && ID.test(options.seedDirectionId)) {
-      seedIdea = (await brandRef.collection('directions').doc(options.seedDirectionId).get()).data()?.concept?.idea;
-    }
+    const seedDirectionId = options.seedDirectionId && ID.test(options.seedDirectionId) ? options.seedDirectionId : null;
+    const seedIdea: string | undefined = seedDirectionId
+      ? (await brandRef.collection('directions').doc(seedDirectionId).get()).data()?.concept?.idea
+      : undefined;
 
-    const credits = createServerCredits(adminDb);
-    const chargeKey = `round_${brandId}_${clientRoundId}`;
+    let created;
     try {
-      await credits.charge({ uid, amount: CREDIT_COSTS.studioRound, action: 'studioRound', key: chargeKey });
+      created = await createRound(adminDb, credits, {
+        uid, brandId, clientRoundId, feedbackChips, seedDirectionId,
+        recipes: pickRecipes(brand.styleTags ?? []),
+        cost: CREDIT_COSTS.studioRound,
+      });
     } catch (error) {
-      if (error instanceof InsufficientCreditsError) return { success: false, insufficient: true, error: `This needs ${error.needed} credits; you have ${error.balance}.` };
+      if (error instanceof InsufficientCreditsError) {
+        return { success: false, insufficient: true, needed: error.needed, balance: error.balance, error: `This needs ${error.needed} credits; you have ${error.balance}.` };
+      }
       throw error;
     }
-
-    const recipes = pickRecipes(brand.styleTags ?? []);
-    const batch = adminDb.batch();
-    batch.create(roundRef, { createdAt: FieldValue.serverTimestamp(), feedbackChips, seedDirectionId: options.seedDirectionId ?? null });
-    const directions = recipes.map((recipe, order) => {
-      const ref = brandRef.collection('directions').doc();
-      batch.create(ref, { roundId: clientRoundId, order, recipe, status: 'pending', picked: false, createdAt: FieldValue.serverTimestamp() });
-      return { id: ref.id, recipe };
-    });
-    await batch.commit();
+    if (created.status === 'exists') return { success: true, data: { roundId: clientRoundId } };
+    const { chargeKey, directions } = created;
 
     after(() =>
       runRound(
@@ -149,6 +148,18 @@ export async function pickDirection(idToken: string, brandId: string, directionI
     batch.create(adminDb.collection('events').doc(), { type: 'picked', uid, brandId, directionId, recipe: picked.data()!.recipe, createdAt: FieldValue.serverTimestamp() });
     await batch.commit();
     return { success: true, data: { directionId } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/** Called when the Studio page opens: fails + refunds directions whose background work died. */
+export async function sweepStudio(idToken: string, brandId: string): Promise<Result<{ swept: number }>> {
+  try {
+    const { uid } = await requireServerAuth(idToken);
+    if (!ID.test(brandId)) return { success: false, error: 'Invalid id' };
+    const swept = await sweepStaleDirections(adminDb, createServerCredits(adminDb), { uid, brandId });
+    return { success: true, data: { swept } };
   } catch (error) {
     return fail(error);
   }

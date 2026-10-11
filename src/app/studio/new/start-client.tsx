@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useRequireAuth } from '@/features/auth/hooks';
@@ -10,6 +11,7 @@ import { AUDIENCE_TAGS, STYLE_TAGS } from '@/lib/brand-tags';
 import { TagPicker } from '@/features/studio/components/tag-picker';
 import { suggestTags, createStudioBrand, startRound } from '@/app/studio/actions';
 import { CREDIT_COSTS } from '@/lib/credits';
+import { useCredits } from '@/hooks/use-credits';
 
 export function StartClient() {
   const { user, isLoading } = useRequireAuth();
@@ -22,6 +24,11 @@ export function StartClient() {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const touched = useRef(false);
+  const { balance, isLoading: creditsLoading } = useCredits();
+  const brandIdRef = useRef<string | null>(null);
+  const roundIdRef = useRef<string | null>(null);
+  const cost = CREDIT_COSTS.studioRound;
+  const shortfall = !creditsLoading && balance < cost;
 
   useEffect(() => {
     if (!user || touched.current || !name.trim() || pitch.trim().length < 5) return;
@@ -37,18 +44,23 @@ export function StartClient() {
     return () => clearTimeout(t);
   }, [user, name, pitch]);
 
-  const canStart = name.trim() && pitch.trim().length >= 5 && audience.length > 0 && style.length > 0 && !isStarting;
+  const canStart = name.trim() && pitch.trim().length >= 5 && audience.length > 0 && style.length > 0 && !isStarting && !shortfall;
 
   const handleStart = async () => {
     if (!user || !canStart) return;
     setIsStarting(true);
     setError(null);
     const token = await user.getIdToken();
-    const brand = await createStudioBrand(token, { name, pitch, audienceTags: audience, styleTags: style });
-    if (!brand.success || !brand.data) { setError(brand.error ?? 'Could not create brand'); setIsStarting(false); return; }
-    const round = await startRound(token, brand.data.brandId, crypto.randomUUID().replace(/-/g, ''));
-    if (!round.success) setError(round.error ?? 'Could not start');
-    router.push(`/studio/${brand.data.brandId}`);
+    if (!brandIdRef.current) {
+      const brand = await createStudioBrand(token, { name, pitch, audienceTags: audience, styleTags: style });
+      if (!brand.success || !brand.data) { setError(brand.error ?? 'Could not create brand'); setIsStarting(false); return; }
+      brandIdRef.current = brand.data.brandId;
+    }
+    roundIdRef.current ??= crypto.randomUUID().replace(/-/g, '');
+    const round = await startRound(token, brandIdRef.current, roundIdRef.current);
+    roundIdRef.current = null;
+    if (!round.success) { setError(round.error ?? 'Could not start'); setIsStarting(false); return; }
+    router.push(`/studio/${brandIdRef.current}`);
   };
 
   if (isLoading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -64,9 +76,14 @@ export function StartClient() {
         <TagPicker label="Who is it for?" tags={AUDIENCE_TAGS} selected={audience} onChange={setAudience} />
         <TagPicker label="How should it feel?" tags={STYLE_TAGS} selected={style} onChange={setStyle} />
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {shortfall && (
+        <p className="text-sm text-muted-foreground">
+          A round of 3 directions costs {cost} credits; you have {balance}. <Link href="/credits" className="underline">Get credits</Link>
+        </p>
+      )}
+      {error && <p className="text-sm text-destructive">{error} {error.includes('credits') && <Link href="/credits" className="underline">Get credits</Link>}</p>}
       <Button size="lg" className="w-full" onClick={handleStart} disabled={!canStart}>
-        {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : `Show me 3 directions · ${CREDIT_COSTS.studioRound} credits`}
+        {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : `Show me 3 directions · ${cost} credits`}
       </Button>
     </main>
   );
