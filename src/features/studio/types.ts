@@ -28,6 +28,7 @@ export interface StudioDirection {
   slides?: DirectionSlides;
   chargeKey?: string;
   redoError?: string;
+  favorite?: boolean;
 }
 
 export const ROUND_FEEDBACK_CHIPS = ['more playful', 'less literal', 'bolder', 'simpler'] as const;

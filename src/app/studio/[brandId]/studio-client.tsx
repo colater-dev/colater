@@ -10,7 +10,7 @@ import { useStudioData } from '@/features/studio/hooks/use-studio-data';
 import { RoundBlock } from '@/features/studio/components/round-block';
 import { useSlideRequest } from '@/features/studio/hooks/use-slide-request';
 import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
-import { startRound, pickDirection, sweepStudio } from '@/app/studio/actions';
+import { startRound, sweepStudio, favoriteDirection } from '@/app/studio/actions';
 import { studioRoundCost } from '@/lib/credits';
 import { cn } from '@/lib/utils';
 
@@ -42,10 +42,10 @@ export function StudioClient({ brandId }: { brandId: string }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const pick = async (directionId: string) => {
+  const toggleFavorite = async (directionId: string) => {
     if (!user) return;
-    const res = await pickDirection(await user.getIdToken(), brandId, directionId);
-    if (!res.success) toast({ variant: 'destructive', title: 'Could not pick', description: res.error });
+    const res = await favoriteDirection(await user.getIdToken(), brandId, directionId).catch(() => null);
+    if (!res?.success) toast({ variant: 'destructive', title: 'Could not update favorite', description: res?.error });
   };
 
   if (authLoading || isLoading) return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -84,8 +84,8 @@ export function StudioClient({ brandId }: { brandId: string }) {
           key={round.id}
           directions={directions}
           brandName={brand.latestName}
-          onPick={pick}
           onVariations={id => newRound(id)}
+          onToggleFavorite={toggleFavorite}
           onGenerate={slides.request}
           isBusy={(id, kind) => !!slides.busy[`${id}:${kind}`]}
         />

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Heart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SlideFrame } from './slide-frame';
@@ -25,16 +25,15 @@ const PAID: { kind: PaidSlideKind; label: string }[] = [
   { kind: 'vector', label: 'Vector file' },
 ];
 
-export function DirectionRow({ direction, brandName, collapsed, onPick, onVariations, onGenerate, busy }: {
+export function DirectionRow({ direction, brandName, onVariations, onToggleFavorite, onGenerate, busy }: {
   direction: StudioDirection;
   brandName: string;
-  collapsed: boolean;
-  onPick: () => void;
   onVariations: () => void;
+  onToggleFavorite: () => void;
   onGenerate: (kind: GenerateKind, feedback?: { chips: string[]; note?: string }) => void;
   busy: (kind: GenerateKind) => boolean;
 }) {
-  const { status, concept, markUrl, fontName, picked, slides = {} } = direction;
+  const { status, concept, markUrl, fontName, slides = {} } = direction;
   const ready = status === 'ready' && !!markUrl;
   const frame = ready ? 'ready' : 'loading';
   const progress = stageLabel(direction);
@@ -54,7 +53,7 @@ export function DirectionRow({ direction, brandName, collapsed, onPick, onVariat
   }
 
   return (
-    <section className={cn('space-y-3 transition-opacity', collapsed && 'opacity-50 hover:opacity-100')}>
+    <section className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm">{concept?.idea ?? ' '}</p>
@@ -62,15 +61,22 @@ export function DirectionRow({ direction, brandName, collapsed, onPick, onVariat
           {!progress && direction.redoError && <p className="text-xs text-muted-foreground">The last redo didn&apos;t work; its credits were refunded.</p>}
         </div>
         {ready && (
-          <div className="flex shrink-0 gap-2">
-            <Button size="sm" variant="ghost" onClick={onVariations}>More like this</Button>
-            <Button size="sm" variant={picked ? 'default' : 'outline'} onClick={onPick}>
-              {picked ? <><Check className="mr-1 h-3 w-3" />Picked</> : 'Pick this'}
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-pressed={!!direction.favorite}
+              aria-label={direction.favorite ? 'Remove from favorites' : 'Add to favorites'}
+              title={direction.favorite ? 'Remove from favorites' : 'Add to favorites'}
+              onClick={onToggleFavorite}
+            >
+              <Heart className={cn('h-4 w-4', direction.favorite && 'fill-red-500 text-red-500')} />
             </Button>
+            <Button size="sm" variant="outline" onClick={onVariations}>More like this</Button>
           </div>
         )}
       </div>
-      <div className={cn('flex gap-4 overflow-x-auto pb-2', collapsed && 'max-h-24 overflow-hidden')}>
+      <div className="flex gap-4 overflow-x-auto pb-2">
         <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>

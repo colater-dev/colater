@@ -18,6 +18,7 @@ import { pickFont } from '@/ai/studio/pick-font';
 import { uploadBufferToR2 } from '@/lib/r2-server';
 import { runRound } from '@/ai/studio/run-round';
 import { createRound } from '@/ai/studio/create-round';
+import { toggleFavorite } from '@/ai/studio/toggle-favorite';
 import { sweepStaleDirections } from '@/ai/studio/sweep-stale';
 import { ROUND_FEEDBACK_CHIPS, SLIDE_FEEDBACK_CHIPS, type GenerateKind } from '@/features/studio/types';
 import { requestSlide } from '@/ai/studio/request-slide';
@@ -146,19 +147,11 @@ export async function startRound(
   }
 }
 
-export async function pickDirection(idToken: string, brandId: string, directionId: string): Promise<Result<{ directionId: string }>> {
+export async function favoriteDirection(idToken: string, brandId: string, directionId: string): Promise<Result<{ favorite: boolean }>> {
   try {
     const { uid } = await requireServerAuth(idToken);
     if (!ID.test(brandId) || !ID.test(directionId)) return { success: false, error: 'Invalid id' };
-    const dirs = adminDb.collection(`users/${uid}/brands/${brandId}/directions`);
-    const picked = await dirs.doc(directionId).get();
-    if (!picked.exists) return { success: false, error: 'Direction not found' };
-    const siblings = await dirs.where('roundId', '==', picked.data()!.roundId).get();
-    const batch = adminDb.batch();
-    siblings.docs.forEach(d => batch.update(d.ref, { picked: d.id === directionId, pickedAt: d.id === directionId ? FieldValue.serverTimestamp() : null }));
-    batch.create(adminDb.collection('events').doc(), { type: 'picked', uid, brandId, directionId, recipe: picked.data()!.recipe, createdAt: FieldValue.serverTimestamp() });
-    await batch.commit();
-    return { success: true, data: { directionId } };
+    return { success: true, data: { favorite: await toggleFavorite(adminDb, { uid, brandId, directionId }) } };
   } catch (error) {
     return fail(error);
   }
