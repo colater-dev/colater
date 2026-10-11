@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { query, collectionGroup, where, orderBy } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { useUserLogos } from '@/features/brands/hooks/use-user-logos';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,16 +18,7 @@ export function RankerClient() {
     const { toast } = useToast();
     const logoService = useMemo(() => createLogoService(firestore), [firestore]);
 
-    const logosQuery = useMemoFirebase(
-        () => user ? query(
-            collectionGroup(firestore, 'logoGenerations'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc')
-        ) : null,
-        [user, firestore]
-    );
-
-    const { data: allLogos, isLoading: isLoadingLogos } = useCollection<Logo>(logosQuery);
+    const { logos: allLogos, isLoading: isLoadingLogos } = useUserLogos(user?.uid);
 
     const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
     const [feedbackValues, setFeedbackValues] = useState<Record<string, string>>({});
