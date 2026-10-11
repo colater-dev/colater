@@ -4,22 +4,17 @@
  */
 
 import * as admin from 'firebase-admin';
+import { resolveServiceAccount } from './service-account';
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length && process.env.NODE_ENV !== 'test') {
   try {
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-      : {
-          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-        };
+    const serviceAccount = resolveServiceAccount(process.env);
 
     // Only initialize if we have valid credentials
-    if (serviceAccount.projectId && serviceAccount.clientEmail && serviceAccount.privateKey) {
+    if (serviceAccount) {
       admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+        credential: admin.credential.cert(serviceAccount),
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     } else {
