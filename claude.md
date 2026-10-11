@@ -954,7 +954,7 @@ GitHub Actions workflow at `.github/workflows/ci.yml` runs on every push to main
 
 ## Studio (new brand flow)
 
-Routes: `/studio/new` (name + one sentence + Jev-suggested preset tags) → `/studio/[brandId]` (rounds of 3 directions as rows).
+Routes: `/studio/new` (name + one sentence + ~40 audience and ~40 style preset tags, scored in one Jev request, sorted by fit with the top 3 pre-selected; up to 8 audiences and 6 styles, `src/lib/brand-tags.ts`) → `/studio/[brandId]` (rounds of 3 directions as rows).
 Server actions: `src/app/studio/actions.ts` (`suggestTags`, `createStudioBrand`, `startRound`, `pickDirection`). Background work runs in `after()` via `src/ai/studio/run-round.ts`.
 Data: `users/{uid}/brands/{brandId}/{rounds,directions}` (server-written only), `events` (server-only).
 Credits: server-only via `src/lib/server-credits.ts` (idempotent charge keys, refunds). Round = 15, failed direction refunds 5. Legacy pages charge through `spendCredits` in `src/app/actions/credits.ts`.

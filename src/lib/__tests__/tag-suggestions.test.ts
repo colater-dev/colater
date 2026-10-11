@@ -19,12 +19,20 @@ describe('selectSuggestedTags', () => {
       audience__families: b(0.65), audience__enterprise: b(0.05),
       style__playful: b(0.88), style__corporate_typo: b(0.99), style__serious: b(0.1),
     };
-    expect(selectSuggestedTags(answers)).toEqual({
+    expect(selectSuggestedTags(answers)).toMatchObject({
       audience: ['gen_z', 'creatives', 'families'],
       style: ['playful'],
     });
   });
   it('ignores unknown keys and non-boolean answers', () => {
-    expect(selectSuggestedTags({ weird: b(1), style__bold: { type: 'choice', choice: 'x' } })).toEqual({ audience: [], style: [] });
+    expect(selectSuggestedTags({ weird: b(1), style__bold: { type: 'choice', choice: 'x' } })).toEqual({ audience: [], style: [], scores: {} });
+  });
+});
+
+describe('selectSuggestedTags scores', () => {
+  const b = (p: number) => ({ type: 'boolean' as const, probability: p });
+  it('returns a fit score for every known tag, including ones below the threshold', () => {
+    const r = selectSuggestedTags({ audience__gen_z: b(0.9), audience__enterprise: b(0.05), style__calm: b(0.4), style__made_up: b(1) });
+    expect(r.scores).toEqual({ gen_z: 0.9, enterprise: 0.05, calm: 0.4 });
   });
 });

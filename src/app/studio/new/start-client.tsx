@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
-import { AUDIENCE_TAGS, STYLE_TAGS } from '@/lib/brand-tags';
+import { AUDIENCE_TAGS, STYLE_TAGS, AUDIENCE_MAX, STYLE_MAX, sortTagsByScore } from '@/lib/brand-tags';
 import { TagPicker } from '@/features/studio/components/tag-picker';
 import { suggestTags, createStudioBrand, startRound } from '@/app/studio/actions';
 import { CREDIT_COSTS } from '@/lib/credits';
@@ -23,6 +23,7 @@ export function StartClient() {
   const [audience, setAudience] = useState<string[]>([]);
   const [style, setStyle] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [scores, setScores] = useState<Record<string, number>>({});
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const touched = useRef(false);
@@ -40,11 +41,16 @@ export function StartClient() {
       if (res.success && res.data && !touched.current) {
         setAudience(res.data.audience);
         setStyle(res.data.style);
+        setScores(res.data.scores);
       }
       setIsSuggesting(false);
     }, 700);
     return () => clearTimeout(t);
   }, [user, name, pitch]);
+
+  const sortedAudience = useMemo(() => sortTagsByScore(AUDIENCE_TAGS, scores), [scores]);
+  const sortedStyle = useMemo(() => sortTagsByScore(STYLE_TAGS, scores), [scores]);
+  const goodFit = useMemo(() => Object.keys(scores).filter(id => scores[id] >= 0.6), [scores]);
 
   const canStart = name.trim() && pitch.trim().length >= 5 && audience.length > 0 && style.length > 0 && !isStarting && !shortfall;
 
@@ -75,8 +81,8 @@ export function StartClient() {
       </div>
       <div className="space-y-6" onClickCapture={() => { touched.current = true; }}>
         {isSuggesting && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Suggesting tags…</p>}
-        <TagPicker label="Who is it for?" tags={AUDIENCE_TAGS} selected={audience} onChange={setAudience} />
-        <TagPicker label="How should it feel?" tags={STYLE_TAGS} selected={style} onChange={setStyle} />
+        <TagPicker label="Who is it for?" tags={sortedAudience} selected={audience} onChange={setAudience} max={AUDIENCE_MAX} suggested={goodFit} />
+        <TagPicker label="How should it feel?" tags={sortedStyle} selected={style} onChange={setStyle} max={STYLE_MAX} suggested={goodFit} />
       </div>
       {shortfall && (
         <p className="text-sm text-muted-foreground">

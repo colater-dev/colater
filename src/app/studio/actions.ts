@@ -7,7 +7,7 @@ import { adminDb } from '@/firebase/server';
 import { requireServerAuth } from '@/lib/server-auth';
 import { createServerCredits, InsufficientCreditsError } from '@/lib/server-credits';
 import { studioRoundCost } from '@/lib/credits';
-import { isTagInGroup, tagLabel } from '@/lib/brand-tags';
+import { isTagInGroup, tagLabel, AUDIENCE_MAX, STYLE_MAX } from '@/lib/brand-tags';
 import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 import { buildTagQuestions, selectSuggestedTags } from '@/lib/tag-suggestions';
 import { jevEvaluate } from '@/ai/jev';
@@ -35,16 +35,16 @@ import { vectorizeMark } from '@/ai/studio/vectorize-mark';
 type Result<T> = { success: boolean; data?: T; error?: string; insufficient?: boolean; needed?: number; balance?: number };
 const fail = (error: unknown): Result<never> => ({ success: false, error: error instanceof Error ? error.message : 'Something went wrong' });
 
-export async function suggestTags(idToken: string, name: string, pitch: string): Promise<Result<{ audience: string[]; style: string[] }>> {
+export async function suggestTags(idToken: string, name: string, pitch: string): Promise<Result<{ audience: string[]; style: string[]; scores: Record<string, number> }>> {
   try {
     await requireServerAuth(idToken);
-    if (!name.trim() || pitch.trim().length < 5) return { success: true, data: { audience: [], style: [] } };
+    if (!name.trim() || pitch.trim().length < 5) return { success: true, data: { audience: [], style: [], scores: {} } };
     try {
       const answers = await jevEvaluate({ brandName: name.trim(), whatItDoes: pitch.trim() }, buildTagQuestions());
       return { success: true, data: selectSuggestedTags(answers) };
     } catch (error) {
       console.error('[studio] tag suggestion failed:', error);
-      return { success: true, data: { audience: [], style: [] } };
+      return { success: true, data: { audience: [], style: [], scores: {} } };
     }
   } catch (error) {
     return fail(error);
@@ -54,8 +54,8 @@ export async function suggestTags(idToken: string, name: string, pitch: string):
 const BrandInput = z.object({
   name: z.string().trim().min(1).max(60),
   pitch: z.string().trim().min(5).max(ELEVATOR_PITCH_MAX),
-  audienceTags: z.array(z.string()).min(1).max(5).refine(t => t.every(id => isTagInGroup('audience', id)), 'Unknown audience tag'),
-  styleTags: z.array(z.string()).min(1).max(5).refine(t => t.every(id => isTagInGroup('style', id)), 'Unknown style tag'),
+  audienceTags: z.array(z.string()).min(1).max(AUDIENCE_MAX).refine(t => t.every(id => isTagInGroup('audience', id)), 'Unknown audience tag'),
+  styleTags: z.array(z.string()).min(1).max(STYLE_MAX).refine(t => t.every(id => isTagInGroup('style', id)), 'Unknown style tag'),
 });
 
 export async function createStudioBrand(idToken: string, input: z.infer<typeof BrandInput>): Promise<Result<{ brandId: string }>> {
