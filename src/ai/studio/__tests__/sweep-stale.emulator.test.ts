@@ -35,4 +35,27 @@ describe.skipIf(!ON)('sweepStaleDirections (emulator)', () => {
     expect((await db.doc(`${base}/done`).get()).data()?.status).toBe('ready');
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 5);
   });
+
+  it('fails and refunds stuck paid slides and stuck mark redos', async () => {
+    const uid = `t_${Math.random().toString(36).slice(2)}`;
+    const credits = createServerCredits(db);
+    await credits.charge({ uid, amount: 5, action: 'studioVector', key: 'slide_v' });
+    await credits.charge({ uid, amount: 5, action: 'studioMarkRedo', key: 'slide_m' });
+    const now = Date.now();
+    const old = Timestamp.fromMillis(now - STALE_DIRECTION_MS - 60_000);
+    const fresh = Timestamp.fromMillis(now - 10_000);
+    const base = `users/${uid}/brands/b/directions`;
+    await db.doc(`${base}/withSlide`).set({ status: 'ready', createdAt: old, slides: {
+      vector: { status: 'pending', chargeKey: 'slide_v', cost: 5, requestedAt: old },
+      voice: { status: 'pending', chargeKey: 'slide_x', cost: 2, requestedAt: fresh },
+    } });
+    await db.doc(`${base}/redo`).set({ status: 'generating', createdAt: old, redoChargeKey: 'slide_m', redoCost: 5, redoRequestedAt: old });
+
+    expect(await sweepStaleDirections(db, credits, { uid, brandId: 'b', now })).toBe(2);
+    const s = (await db.doc(`${base}/withSlide`).get()).data()!.slides;
+    expect(s.vector.status).toBe('failed');
+    expect(s.voice.status).toBe('pending');
+    expect((await db.doc(`${base}/redo`).get()).data()?.status).toBe('failed');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
 });
