@@ -12,6 +12,10 @@ export const CREDIT_COSTS = {
   brandCompletion: 3,
   brandSuggestions: 3,
   studioRound: 15,
+  studioColor: 5,
+  studioVoice: 2,
+  studioVector: 5,
+  studioMarkRedo: 5,
 } as const;
 
 /** Refund per failed direction in a Studio round (15 / 3). */
@@ -31,6 +35,10 @@ export const CREDIT_ACTION_LABELS: Record<CreditAction, string> = {
   brandCompletion: 'Brand Completion',
   brandSuggestions: 'Brand Suggestions',
   studioRound: 'Studio round (3 directions)',
+  studioColor: 'Studio color palette',
+  studioVoice: 'Studio voice',
+  studioVector: 'Studio vector file',
+  studioMarkRedo: 'Studio mark redo',
 };
 
 /** Credit packages available for purchase */

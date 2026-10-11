@@ -26,9 +26,9 @@ export interface RoundJob {
 async function runDirection(deps: RoundDeps, job: RoundJob, d: { id: string; recipe: Recipe }) {
   const ref = deps.db.doc(`users/${job.uid}/brands/${job.brandId}/directions/${d.id}`);
   try {
-    await ref.update({ status: 'generating', updatedAt: FieldValue.serverTimestamp() });
+    await ref.update({ status: 'generating', stage: 'concept', updatedAt: FieldValue.serverTimestamp() });
     const concept = await deps.generateConcept({ ...job.base, recipe: d.recipe });
-    await ref.update({ concept, updatedAt: FieldValue.serverTimestamp() });
+    await ref.update({ concept, stage: 'mark', updatedAt: FieldValue.serverTimestamp() });
     const [image, fontName] = await Promise.all([
       deps.renderMark(d.recipe.model, concept.markPrompt),
       deps.pickFont({ brandName: job.base.name, pitch: job.base.pitch, idea: concept.idea, style: d.recipe.styleLean }),

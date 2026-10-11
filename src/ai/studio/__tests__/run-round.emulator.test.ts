@@ -46,6 +46,7 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
       expect(d.markUrl).toBe('https://r2.example/mark.png');
       expect(d.fontName).toBe('Caprasimo');
       expect(d.concept.captions.mark).toBe('m');
+      expect(d.stage).toBe('mark');
     }
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 15);
   });
