@@ -19,6 +19,7 @@ import { LogOut, Loader2, Coins, Plus } from 'lucide-react';
 import { Menu } from '@/components/animate-ui/icons/menu';
 import { createBrandService } from '@/services';
 import { useCredits } from '@/hooks/use-credits';
+import { brandHref } from '@/lib/brand-routes';
 import { purchaseCredits } from '@/app/actions';
 import type { Brand } from '@/lib/types';
 
@@ -54,7 +55,7 @@ export function AppHeader({ onMenuClick, isSidebarOpen }: AppHeaderProps) {
 
     // Extract brand ID from pathname if on a brand page
     const currentBrandId = useMemo(() => {
-        const brandMatch = pathname.match(/\/brands\/([^\/]+)/);
+        const brandMatch = pathname.match(/\/(?:brands|studio)\/([^\/]+)/);
         return brandMatch ? brandMatch[1] : null;
     }, [pathname]);
 
@@ -68,8 +69,9 @@ export function AppHeader({ onMenuClick, isSidebarOpen }: AppHeaderProps) {
             // On taglines page, update query param
             router.push(`/taglines?brandId=${brandId}`);
         } else {
-            // Otherwise, navigate to brand page
-            router.push(`/brands/${brandId}`);
+            // Otherwise, navigate to the brand's own page (Studio or editor)
+            const brand = brands?.find(b => b.id === brandId);
+            router.push(brandHref({ id: brandId, source: brand?.source }, 'edit'));
         }
     };
 

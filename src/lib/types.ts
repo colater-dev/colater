@@ -10,6 +10,7 @@ export type FirestoreTimestamp = Timestamp;
 
 export interface Brand {
     id: string;
+    source?: 'studio';
     userId: string;
     createdAt: FirestoreTimestamp;
     latestName: string;

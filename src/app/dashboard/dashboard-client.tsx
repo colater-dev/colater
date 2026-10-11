@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { brandHref } from '@/lib/brand-routes';
 import Image from 'next/image';
 import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -58,7 +59,7 @@ const BrandListItem = ({ brand }: { brand: Brand }) => {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-            <Link href={`/brands/${brand.id}/presentation`} className="block h-full transition-all">
+            <Link href={brandHref(brand)} className="block h-full transition-all">
                 <Card className="h-full aspect-video flex flex-col shadow-[0px_2px_8px_-2px_rgba(0,0,0,0.15),0px_0px_0px_1px_rgba(0,0,0,0.05)] hover:shadow-[0px_4px_12px_-2px_rgba(0,0,0,0.2),0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-shadow overflow-hidden">
                     <CardContent className="h-full flex flex-col items-center justify-center p-4">
                         <div className="flex flex-col items-center justify-center">
@@ -104,7 +105,7 @@ const BrandListItem = ({ brand }: { brand: Brand }) => {
             </Link>
             <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button asChild size="sm" variant="secondary" className="shadow-sm">
-                    <Link href={`/brands/${brand.id}`}>
+                    <Link href={brandHref(brand, 'edit')}>
                         <Plus className="mr-2 h-4 w-4 rotate-45" />
                         Editor
                     </Link>
