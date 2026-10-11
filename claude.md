@@ -952,6 +952,16 @@ GitHub Actions workflow at `.github/workflows/ci.yml` runs on every push to main
 
 **API key service**: `src/services/api-key.service.ts` — CRUD for brand API keys
 
+## Studio (new brand flow)
+
+Routes: `/studio/new` (name + one sentence + Jev-suggested preset tags) → `/studio/[brandId]` (rounds of 3 directions as rows).
+Server actions: `src/app/studio/actions.ts` (`suggestTags`, `createStudioBrand`, `startRound`, `pickDirection`). Background work runs in `after()` via `src/ai/studio/run-round.ts`.
+Data: `users/{uid}/brands/{brandId}/{rounds,directions}` (server-written only), `events` (server-only).
+Credits: server-only via `src/lib/server-credits.ts` (idempotent charge keys, refunds). Round = 15, failed direction refunds 5. Legacy pages charge through `spendCredits` in `src/app/actions/credits.ts`.
+Models: `src/ai/logo-models.ts` (Recraft V4.1, GPT Image 1.5, Nano Banana Pro). Jev (`typesafe-ai/jev`) via `AI_GATEWAY_API_KEY` for tag suggestions and font choice.
+Local: `npm run emulators` (needs Java: `PATH="/opt/homebrew/opt/openjdk/bin:$PATH"`) + `npm run dev:local` (port of your choice, builds into `.next-local`); emulator tests `npm run test:emulator`. Test login: `scripts/emulator-test-user.json`.
+Design: `docs/superpowers/specs/2026-10-11-studio-brand-flow-design.md`; plan: `docs/superpowers/plans/2026-10-11-studio-phases-1-3.md`.
+
 ## Environment Variables
 
 **Required in `.env`**:
@@ -965,13 +975,16 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 
-# Google Generative AI
-GOOGLE_GENAI_API_KEY=...
+# Firebase Admin (server actions, API routes): service-account JSON from the console
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
 
-# OpenAI
-OPENAI_API_KEY=...
+# Anthropic (all text AI via Genkit; required at import time)
+ANTHROPIC_API_KEY=...
 
-# Fal.ai
+# Vercel AI Gateway (Jev decision model: Studio tag suggestions + font choice)
+AI_GATEWAY_API_KEY=...
+
+# Fal.ai (all image models)
 FAL_KEY=...
 
 # Cloudflare R2
@@ -979,6 +992,7 @@ R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
+R2_PUBLIC_URL=...
 
 # Unsplash (optional, for moodboard)
 UNSPLASH_ACCESS_KEY=...

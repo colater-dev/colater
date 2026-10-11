@@ -301,14 +301,16 @@ Severity: **P0** = broken core feature or exploitable · **P1** = user-visible b
 
 ---
 
-## Fixed during this session (uncommitted)
+## Fixed during this session (branch `studio-flow`)
 
 | Fix | Files | Verification |
 |---|---|---|
 | Firebase Admin never initialized locally: the console-downloaded service-account JSON uses snake_case keys (`project_id`, `client_email`, `private_key`) but the guard checked camelCase, so init was always skipped and every server action failed with "Firebase Admin SDK not initialized". Extracted `resolveServiceAccount()` that accepts both; removed the debug logs. | [service-account.ts](../src/firebase/service-account.ts), [server.ts](../src/firebase/server.ts), [service-account.test.ts](../src/firebase/__tests__/service-account.test.ts) | 4 unit tests; after restart, server actions pass auth and reach the AI call |
 | Concept auto-generation looped on failure, charging 3 credits per retry until the balance hit 0 (seen in the ledger on 2026-03-14 and 2026-10-11). Added a run-once ref guard, matching the existing logo auto-generate pattern. | [brand-detail-client.tsx](../src/app/brands/[brandId]/brand-detail-client.tsx) | Real failure (Anthropic billing) produced exactly one charge, no retries |
 
-**Still uncommitted from before this session:** the `firestore.rules` balance-unlock and the "+10 credits" header button. These should not ship as-is (see P0-1/2).
+| P0-1 (credits enforced only in the browser): credit balances and ledger are now server-write-only in `firestore.rules`; Studio and the legacy editor/presentation charge via Admin-SDK server actions with idempotent keys and refunds. The old WIP balance-unlock rule and client "+10" button were replaced (the "+" now calls the mock `purchaseCredits` action). Note: legacy AI server actions still don't check credits themselves (P0-1 remains partially open for them). | `src/lib/server-credits.ts`, `src/app/actions/credits.ts`, `firestore.rules` | emulator tests (credits + rules), manual 50→100 top-up |
+| Next 16 rejected the image proxy's `q=80`, so every `/_next/image` request returned 400 (stickers, crops, color extraction fell back to direct loads that R2 CORS blocks). | `next.config.ts` (`images.qualities`) | proxy returns 200; Studio sticker slide renders |
+| P0-8a (Reve 404) and fake Gemini/OpenAI providers: replaced with Recraft V4.1 / GPT Image 1.5 / Nano Banana Pro, black-on-white enforced, server-side provider allowlist (also closes P0-4). | `src/ai/logo-models.ts` | unit tests + real generations |
 
 **Environment blocker found:** the Anthropic API account behind `ANTHROPIC_API_KEY` is out of credit, so every text-AI feature currently fails.
 
