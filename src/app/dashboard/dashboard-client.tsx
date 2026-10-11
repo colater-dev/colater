@@ -145,11 +145,14 @@ export function DashboardClient() {
                             Logo Ranker
                         </Link>
                     </Button>
-                    <Button asChild>
+                    <Button asChild variant="outline">
                         <Link href="/brands/new">
                             <Plus className="mr-2" />
                             Create New Brand
                         </Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/studio/new">New brand in Studio</Link>
                     </Button>
                 </div>
             </div>
