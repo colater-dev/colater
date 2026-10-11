@@ -2,6 +2,7 @@
 
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SlideShimmer } from './slide-shimmer';
 
 export function SlidePlaceholder({ label, cost, state, onGenerate }: {
   label: string;
@@ -11,9 +12,9 @@ export function SlidePlaceholder({ label, cost, state, onGenerate }: {
 }) {
   return (
     <figure className="w-[320px] shrink-0 space-y-2">
-      <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed text-sm text-muted-foreground">
+      <div className="relative flex aspect-video flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border-2 border-dashed text-sm text-muted-foreground">
         {state === 'pending' ? (
-          <><Loader2 className="h-5 w-5 animate-spin" /><span>Making {label.toLowerCase()}…</span></>
+          <><SlideShimmer /><span className="relative flex items-center gap-2 text-neutral-600"><Loader2 className="h-4 w-4 animate-spin" />Making {label.toLowerCase()}…</span></>
         ) : (
           <>
             {state === 'failed' && <span className="flex items-center gap-1"><AlertCircle className="h-4 w-4" />Didn&apos;t work; credits refunded</span>}
