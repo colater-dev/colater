@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDirectionConceptPrompt } from '../direction-concept';
+import { buildDirectionConceptPrompt, DirectionConceptSchema } from '../direction-concept';
 
 const brief = {
   name: 'Broad City', pitch: 'A neighbourhood comedy podcast.',
@@ -22,5 +22,13 @@ describe('buildDirectionConceptPrompt', () => {
     const p = buildDirectionConceptPrompt({ ...brief, feedbackChips: ['less literal'], seedIdea: 'Two overlapping speech bubbles' });
     expect(p).toContain('Feedback on previous directions: less literal');
     expect(p).toContain('Explore a variation of this earlier direction: Two overlapping speech bubbles');
+  });
+  it('asks for a brand-voiced type specimen', () => {
+    expect(buildDirectionConceptPrompt(brief)).toContain('type specimen');
+  });
+  it('schema requires a type sample with headline and body', () => {
+    const base = { idea: 'i', rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' } };
+    expect(DirectionConceptSchema.safeParse(base).success).toBe(false);
+    expect(DirectionConceptSchema.safeParse({ ...base, typeSample: { headline: 'Float together', body: 'Swim lessons built around calm.' } }).success).toBe(true);
   });
 });

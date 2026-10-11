@@ -32,7 +32,7 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
       generateVoice: async () => ({ tagline: 'Float together', story: 'Swimming made calm.' }),
       vectorizeMark: async () => ({ buffer: Buffer.from('<svg/>'), contentType: 'image/svg+xml' }),
       upload: async (_b, ct) => (ct.includes('svg') ? 'https://r2.example/new.svg' : 'https://r2.example/new.png'),
-      generateConcept: async () => ({ idea: 'Simpler idea', rationale: 'r', markPrompt: 'p2', captions: { mark: 'm2', lockup: 'l2', inUse: 'u2' } }),
+      generateConcept: async () => ({ idea: 'Simpler idea', rationale: 'r', markPrompt: 'p2', captions: { mark: 'm2', lockup: 'l2', inUse: 'u2' }, typeSample: { headline: 'h', body: 'b' } }),
       renderMark: async () => ({ buffer: Buffer.from('x'), contentType: 'image/png' }),
       pickFont: async (_s, exclude) => (exclude?.includes('Caprasimo') ? 'Archivo' : 'Caprasimo'),
       ...overrides,

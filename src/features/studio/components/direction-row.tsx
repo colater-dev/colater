@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 import { SlideFrame } from './slide-frame';
 import { MarkSlide } from './slides/mark-slide';
 import { LockupSlide } from './slides/lockup-slide';
-import { InUseSlide } from './slides/in-use-slide';
+import { StickerSlide } from './slides/sticker-slide';
+import { AppIconSlide } from './slides/app-icon-slide';
 import { TypographySlide } from './slides/typography-slide';
 import type { StudioDirection } from '../types';
 
@@ -45,8 +46,9 @@ export function DirectionRow({ direction, brandName, collapsed, onPick, onVariat
       <div className={cn('flex gap-4 overflow-x-auto pb-2', collapsed && 'max-h-24 overflow-hidden')}>
         <SlideFrame status={frame} caption={concept?.captions.mark}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.lockup}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
-        <SlideFrame status={frame} caption={concept?.captions.inUse}>{markUrl && <InUseSlide markUrl={markUrl} />}</SlideFrame>
-        <SlideFrame status={frame} caption="Typography">{markUrl && <TypographySlide name={brandName} fontName={fontName} />}</SlideFrame>
+        <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>
+        <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} />}</SlideFrame>
+        <SlideFrame status={frame} caption="Typography">{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} />}</SlideFrame>
       </div>
     </section>
   );

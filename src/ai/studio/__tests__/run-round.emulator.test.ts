@@ -29,7 +29,7 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     for (const d of directions) await db.doc(`${base}/${d.id}`).set({ roundId: 'r', recipe: d.recipe, status: 'pending' });
     const deps: RoundDeps = {
       db, credits,
-      generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' } }),
+      generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, typeSample: { headline: 'h', body: 'b' } }),
       renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png' }; },
       uploadMark: async () => 'https://r2.example/mark.png',
       pickFont: async () => 'Caprasimo',

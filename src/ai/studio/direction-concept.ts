@@ -22,6 +22,10 @@ export const DirectionConceptSchema = z.object({
     lockup: z.string().describe('Caption for the mark-with-name slide, 2-6 words.'),
     inUse: z.string().describe('Caption for the in-use slide, 2-6 words.'),
   }),
+  typeSample: z.object({
+    headline: z.string().describe('A short headline in the brand voice, max 6 words, to show off the typeface. Not the brand name.'),
+    body: z.string().describe('One sentence of body copy in the brand voice, max 20 words.'),
+  }),
 });
 export type DirectionConcept = z.infer<typeof DirectionConceptSchema>;
 
@@ -39,6 +43,7 @@ export function buildDirectionConceptPrompt(b: DirectionBrief): string {
   if (b.seedIdea) lines.push(`Explore a variation of this earlier direction: ${b.seedIdea}`);
   lines.push(
     'The mark must work as a solid black mark on a plain white background: flat, no gradients, no text, readable at small sizes.',
+    "Also write a short type specimen in the brand's voice: a headline (max 6 words, not the brand name) and one body sentence (max 20 words) that this brand would really say.",
     'Keep every caption short and visual. No marketing fluff.'
   );
   return lines.join('\n');
