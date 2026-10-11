@@ -20,6 +20,7 @@ import { VoiceSlide } from './slides/voice-slide';
 import { VectorSlide } from './slides/vector-slide';
 import { stageLabel } from '../stage-label';
 import { nextLockupLayout, type LockupLayout } from '../lockup-layout';
+import { nextMotionPreset, pickMotionPreset } from '../motion-presets';
 import { GENERATE_COSTS, type GenerateKind, type PaidSlideKind, type StudioDirection } from '../types';
 
 const PAID: { kind: Exclude<PaidSlideKind, 'color'>; label: string }[] = [
@@ -46,6 +47,7 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
   // Slides 1 and 2 are the same mark/lockup in different layouts; each click moves one on.
   const [layouts, setLayouts] = useState<[LockupLayout, LockupLayout]>(['mark', 'horizontal']);
   const cycle = (i: 0 | 1) => setLayouts(ls => (i === 0 ? [nextLockupLayout(ls[0]), ls[1]] : [ls[0], nextLockupLayout(ls[1])]));
+  const [motionPreset, setMotionPreset] = useState(() => pickMotionPreset(direction.id));
   const lockupCaption = (l: LockupLayout) => (l === 'mark' ? concept?.captions.mark : concept?.captions.lockup);
   const fb = (kind: 'mark' | 'lockup' | 'color' | 'voice') => <SlideFeedback kind={kind} onApply={f => onGenerate(kind, f)} />;
 
@@ -90,7 +92,9 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
             {markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} layout={layouts[i]} onNext={() => cycle(i)} />}
           </SlideFrame>
         ))}
-        <SlideFrame status={frame} caption="In motion">{markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
+        <SlideFrame status={frame} caption={`In motion · ${motionPreset.label}`}>
+          {markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} preset={motionPreset} onNext={() => setMotionPreset(p => nextMotionPreset(p.id))} />}
+        </SlideFrame>
         <SlideFrame status={frame} caption={direction.stickerBg && concept?.stickerSurface ? `Sticker · ${concept.stickerSurface}` : concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} backgroundUrl={direction.stickerBg?.url} />}</SlideFrame>
         <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>
         <SlideFrame status={frame} caption="Type hierarchy" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} tagline={voice?.tagline} />}</SlideFrame>

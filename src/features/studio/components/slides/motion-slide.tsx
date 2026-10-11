@@ -1,12 +1,22 @@
 'use client';
-import { useRef, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion, type MotionProps, type Transition } from 'framer-motion';
 import { BRAND_FONTS } from '@/config/brand-fonts';
 import { useLockup } from '../../hooks/use-lockup';
+import type { MotionPreset } from '../../motion-presets';
 import type { PaletteColor } from '../../types';
 
-/** Logo reveal: the mark draws in from a circle, then the name slides in. Loops; click to replay. */
-export function MotionSlide({ markUrl, name, fontName, palette }: { markUrl: string; name: string; fontName?: string; palette?: PaletteColor[] }) {
+const PAUSE_MS = 1800;
+
+/** Logo reveal using one of the motion presets. Loops; click to try another preset. */
+export function MotionSlide({ markUrl, name, fontName, palette, preset, onNext }: {
+  markUrl: string;
+  name: string;
+  fontName?: string;
+  palette?: PaletteColor[];
+  preset: MotionPreset;
+  onNext: () => void;
+}) {
   const reduce = useReducedMotion();
   const [run, setRun] = useState(0);
   const c = Object.fromEntries((palette ?? []).map(p => [p.role, p.hex])) as Partial<Record<PaletteColor['role'], string>>;
@@ -15,23 +25,34 @@ export function MotionSlide({ markUrl, name, fontName, palette }: { markUrl: str
   const font = BRAND_FONTS.find(f => f.name === fontName) ?? BRAND_FONTS.find(f => f.name === 'Archivo')!;
   const rowRef = useRef<HTMLDivElement>(null);
   const l = useLockup({ rowRef, markUrl, markColor: ink, fontVariable: font.variable, text: name, capCqw: 5, maxWidth: 0.7, maxGrow: 1.3 });
-  const loop = reduce ? undefined : { repeat: Infinity, repeatDelay: 2 };
+  const letters = Array.from(name);
+
+  // Replay by remounting, so mark and name always restart together.
+  useEffect(() => {
+    if (reduce) return;
+    const period = preset.durationMs + (preset.letterStagger ?? 0) * letters.length * 1000 + PAUSE_MS;
+    const t = setInterval(() => setRun(r => r + 1), period);
+    return () => clearInterval(t);
+  }, [reduce, preset, letters.length]);
+
+  const play = (a: MotionPreset['mark'], delay = 0): MotionProps => {
+    if (reduce) return { initial: false };
+    const transition: Transition = { ...a.transition, delay: ((a.transition as { delay?: number }).delay ?? 0) + delay };
+    return { initial: a.initial, animate: a.animate, transition };
+  };
+
   return (
-    <button type="button" onClick={() => setRun(r => r + 1)} title="Click to replay"
+    <button type="button" onClick={onNext} title="Click to try another animation"
       className="absolute inset-0 flex items-center justify-center" style={{ background }}>
-      <div ref={rowRef} className="flex items-center" style={{ ...l.rowStyle, fontFamily: `var(${font.variable})`, visibility: l.mark ? 'visible' : 'hidden' }}>
-      {l.mark && (
-        <motion.img key={`m${run}`} src={l.mark} alt="" className="shrink-0" style={l.markStyle}
-          initial={reduce ? false : { clipPath: 'circle(0% at 50% 50%)', scale: 0.85, opacity: 0 }}
-          animate={{ clipPath: 'circle(75% at 50% 50%)', scale: 1, opacity: 1 }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], ...loop }} />
-      )}
-      <motion.span key={`n${run}`} className="whitespace-nowrap leading-none" style={{ color: ink }}
-        initial={reduce ? false : { x: '-6cqw', opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1], ...loop }}>
-        <span style={l.textStyle}>{name}</span>
-      </motion.span>
+      <div ref={rowRef} key={`${preset.id}${run}`} style={{ ...l.rowStyle, fontFamily: `var(${font.variable})`, visibility: l.mark ? 'visible' : 'hidden' }}>
+        {l.mark && <motion.img src={l.mark} alt="" style={l.markStyle} {...play(preset.mark)} />}
+        <span className="whitespace-nowrap" style={{ ...l.textStyle, color: ink }}>
+          {preset.letterStagger
+            ? letters.map((ch, i) => (
+              <motion.span key={i} className="inline-block" {...play(preset.name, i * preset.letterStagger!)}>{ch === ' ' ? ' ' : ch}</motion.span>
+            ))
+            : <motion.span className="inline-block" {...play(preset.name)}>{name}</motion.span>}
+        </span>
       </div>
     </button>
   );
