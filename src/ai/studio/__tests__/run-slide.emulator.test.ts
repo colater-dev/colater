@@ -89,4 +89,28 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
     expect(d.slides.vector.status).toBe('ready');
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
   });
+
+  it('a redo that fails at rendering keeps the old concept with the old mark', async () => {
+    const { uid, credits, ref, deps, base } = await setup({ renderMark: async () => { throw new Error('render timed out'); } });
+    await credits.charge({ uid, amount: 5, action: 'studioMarkRedo', key: 'k5' });
+    await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'mark', chargeKey: 'k5', cost: 5, brief: base });
+    const d = (await ref.get()).data()!;
+    expect(d.markUrl).toBe('https://r2.example/old.png');
+    expect(d.concept.idea).toBe('An idea');
+  });
+
+  it('a vector that finishes after the mark changed is discarded and refunded', async () => {
+    const { uid, credits, ref, deps, base } = await setup({
+      vectorizeMark: async () => {
+        await ref.update({ markUrl: 'https://r2.example/redone.png' }); // a redo finished meanwhile
+        return { buffer: Buffer.from('<svg/>'), contentType: 'image/svg+xml' };
+      },
+    });
+    await credits.charge({ uid, amount: 5, action: 'studioVector', key: 'k6' });
+    await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'vector', chargeKey: 'k6', cost: 5, brief: base });
+    const d = (await ref.get()).data()!;
+    expect(d.slides.vector.status).toBe('failed');
+    expect(d.slides.vector.error).toContain('mark changed');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
 });

@@ -53,17 +53,23 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
         if (!d.markUrl) throw new Error('No mark to vectorize');
         const svg = await deps.vectorizeMark(d.markUrl);
         const svgUrl = await deps.upload(svg.buffer, svg.contentType, job.uid);
-        await ref.update({ 'slides.vector': { status: 'ready', svgUrl }, updatedAt: now() });
+        // A mark redo may have finished meanwhile; never attach an SVG of an old mark.
+        await deps.db.runTransaction(async tx => {
+          const current = (await tx.get(ref)).data();
+          if (current?.markUrl !== d.markUrl) throw new Error('The mark changed while vectorizing');
+          tx.update(ref, { 'slides.vector': { status: 'ready', svgUrl }, updatedAt: now() });
+        });
         return;
       }
       case 'mark': {
         await ref.update({ status: 'generating', stage: 'concept', updatedAt: now() });
         const feedbackChips = [...(job.feedback?.chips ?? []), ...(job.feedback?.note ? [job.feedback.note] : [])];
         const concept = await deps.generateConcept({ ...job.brief, recipe: d.recipe, feedbackChips, seedIdea: d.concept?.idea });
-        await ref.update({ concept, stage: 'mark', updatedAt: now() });
+        await ref.update({ stage: 'mark', updatedAt: now() });
         const image = await deps.renderMark(d.recipe.model, concept.markPrompt);
         const markUrl = await deps.upload(image.buffer, image.contentType, job.uid);
-        await ref.update({ status: 'ready', markUrl, redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
+        // Concept and mark change together, so a failed redo never pairs a new idea with the old mark.
+        await ref.update({ status: 'ready', markUrl, concept, redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
         return;
       }
       case 'lockup': {

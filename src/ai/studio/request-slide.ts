@@ -15,7 +15,13 @@ export async function requestSlide(
   const ref = db.doc(`users/${a.uid}/brands/${a.brandId}/directions/${a.directionId}`);
   const snap = await ref.get();
   if (!snap.exists) throw new Error('Direction not found');
-  if (a.kind !== 'mark' && !snap.data()?.markUrl) throw new Error('Direction not ready');
+  const data = snap.data() ?? {};
+  if (a.kind !== 'mark' && !data.markUrl) throw new Error('Direction not ready');
+  const anySlidePending = (['color', 'voice', 'vector'] as const).some(k => data.slides?.[k]?.status === 'pending');
+  const busy = a.kind === 'mark'
+    ? data.status === 'pending' || data.status === 'generating' || anySlidePending
+    : a.kind !== 'lockup' && (data.status === 'generating' || data.slides?.[a.kind]?.status === 'pending');
+  if (busy) throw new Error('Already generating');
 
   const cost = GENERATE_COSTS[a.kind];
   const action = ACTIONS[a.kind];
@@ -32,10 +38,15 @@ export async function requestSlide(
   const feedbackEntry = a.feedback && (a.feedback.chips.length || a.feedback.note)
     ? { feedback: FieldValue.arrayUnion({ slideKind: a.kind, chips: a.feedback.chips, note: a.feedback.note ?? null, at: new Date().toISOString() }) }
     : {};
-  await ref.update({ ...pending, ...feedbackEntry, updatedAt: FieldValue.serverTimestamp() });
+  try {
+    await ref.update({ ...pending, ...feedbackEntry, updatedAt: FieldValue.serverTimestamp() });
+  } catch (error) {
+    if (chargeKey) await credits.refund({ uid: a.uid, key: chargeKey, amount: cost, reason: `${a.kind} could not be started` });
+    throw error;
+  }
   await db.collection('events').add({
     type: a.feedback ? 'slide_feedback' : 'slide_generated', uid: a.uid, brandId: a.brandId, directionId: a.directionId,
-    kind: a.kind, chips: a.feedback?.chips ?? [], recipe: snap.data()?.recipe ?? null, createdAt: FieldValue.serverTimestamp(),
-  });
+    kind: a.kind, chips: a.feedback?.chips ?? [], recipe: data.recipe ?? null, createdAt: FieldValue.serverTimestamp(),
+  }).catch(console.error);
   return { status: 'scheduled', chargeKey, cost };
 }

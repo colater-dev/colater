@@ -19,11 +19,16 @@ export function useSlideRequest(brandId: string) {
     setBusy(b => ({ ...b, [slot]: true }));
     setCreditError(null);
     ids.current[slot] ??= crypto.randomUUID().replace(/-/g, '');
-    const res = await generateSlide(await user.getIdToken(), brandId, directionId, kind, ids.current[slot], feedback);
-    delete ids.current[slot];
-    if (res.insufficient) setCreditError(res.error ?? 'Not enough credits');
-    else if (!res.success) toast({ variant: 'destructive', title: 'Could not generate', description: res.error });
-    setBusy(b => ({ ...b, [slot]: false }));
+    try {
+      const res = await generateSlide(await user.getIdToken(), brandId, directionId, kind, ids.current[slot], feedback);
+      if (res.insufficient) setCreditError(res.error ?? 'Not enough credits');
+      else if (!res.success) toast({ variant: 'destructive', title: 'Could not generate', description: res.error });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Could not generate', description: error instanceof Error ? error.message : 'Please try again.' });
+    } finally {
+      delete ids.current[slot];
+      setBusy(b => ({ ...b, [slot]: false }));
+    }
   }, [user, brandId, busy, toast]);
 
   return { request, busy, creditError };

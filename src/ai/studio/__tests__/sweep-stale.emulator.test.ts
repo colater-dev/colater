@@ -58,4 +58,18 @@ describe.skipIf(!ON)('sweepStaleDirections (emulator)', () => {
     expect((await db.doc(`${base}/redo`).get()).data()?.status).toBe('failed');
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
   });
+
+  it('a stuck redo on a direction that already has a mark keeps the mark visible', async () => {
+    const uid = `t_${Math.random().toString(36).slice(2)}`;
+    const credits = createServerCredits(db);
+    await credits.charge({ uid, amount: 5, action: 'studioMarkRedo', key: 'slide_r' });
+    const old = Timestamp.fromMillis(Date.now() - STALE_DIRECTION_MS - 60_000);
+    const ref = db.doc(`users/${uid}/brands/b/directions/withMark`);
+    await ref.set({ status: 'generating', createdAt: old, markUrl: 'https://x/m.png', redoChargeKey: 'slide_r', redoCost: 5, redoRequestedAt: old });
+    expect(await sweepStaleDirections(db, credits, { uid, brandId: 'b' })).toBe(1);
+    const d = (await ref.get()).data()!;
+    expect(d.status).toBe('ready');
+    expect(d.redoError).toBe('Timed out');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
 });

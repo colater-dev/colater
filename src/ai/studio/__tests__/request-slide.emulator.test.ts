@@ -55,4 +55,31 @@ describe.skipIf(!ON)('requestSlide (emulator)', () => {
     const r = await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'lockup', clientRequestId: 'req33333' });
     expect(r).toEqual({ status: 'scheduled', chargeKey: null, cost: 0 });
   });
+
+  it('refuses a second paid request while the same slide is pending (no extra charge)', async () => {
+    const { uid, credits } = await setup();
+    await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqAAAAAA' });
+    await expect(requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqBBBBBB' })).rejects.toThrow('Already generating');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 5);
+  });
+
+  it('refuses a mark redo while any slide is pending, and paid slides while the mark is regenerating', async () => {
+    const { uid, credits } = await setup();
+    await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'vector', clientRequestId: 'reqCCCCCC' });
+    await expect(requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'mark', clientRequestId: 'reqDDDDDD' })).rejects.toThrow('Already generating');
+    const other = await setup({ status: 'generating', markUrl: 'https://x/m.png' });
+    await expect(requestSlide(db, other.credits, { uid: other.uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqEEEEEE' })).rejects.toThrow('Already generating');
+  });
+
+  it('refunds the charge when writing the pending state fails', async () => {
+    const { uid, credits } = await setup();
+    // Simulate the direction disappearing between the read and the write.
+    const deletingCredits = { ...credits, charge: async (a: Parameters<typeof credits.charge>[0]) => {
+      const r = await credits.charge(a);
+      await db.doc(`users/${uid}/brands/b/directions/d`).delete();
+      return r;
+    } };
+    await expect(requestSlide(db, deletingCredits, { uid, brandId: 'b', directionId: 'd', kind: 'voice', clientRequestId: 'reqFFFFFF' })).rejects.toThrow();
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
 });

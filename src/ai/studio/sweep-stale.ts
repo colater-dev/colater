@@ -24,7 +24,10 @@ export async function sweepStaleDirections(
     const claimed = await db.runTransaction(async tx => {
       const snap = await tx.get(d.ref);
       if (!['pending', 'generating'].includes(snap.data()?.status)) return false;
-      tx.update(d.ref, { status: 'failed', error: 'Timed out', updatedAt: FieldValue.serverTimestamp() });
+      // A stuck redo on a direction that already has a mark keeps the mark visible.
+      tx.update(d.ref, snap.data()?.markUrl
+        ? { status: 'ready', stage: 'mark', redoError: 'Timed out', updatedAt: FieldValue.serverTimestamp() }
+        : { status: 'failed', error: 'Timed out', updatedAt: FieldValue.serverTimestamp() });
       return true;
     });
     if (!claimed) continue;
