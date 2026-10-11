@@ -1,5 +1,6 @@
 'use client';
 
+import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 import { useOnboardingState } from '@/features/onboarding/hooks/use-onboarding-state';
 import { useStepNavigation } from '@/features/onboarding/hooks/use-step-navigation';
 import { OnboardingStepWrapper } from '@/features/onboarding/components';
@@ -61,7 +62,7 @@ export default function PitchStepClient() {
                             <div />
                         )}
                         <p className="text-xs text-muted-foreground">
-                            {state.elevatorPitch.length} / 200 characters
+                            {state.elevatorPitch.length} / {ELEVATOR_PITCH_MAX} characters
                         </p>
                     </div>
                 </div>

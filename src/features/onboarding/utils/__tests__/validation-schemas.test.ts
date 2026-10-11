@@ -65,13 +65,17 @@ describe('pitchStepSchema', () => {
     expect(pitchStepSchema.safeParse({ elevatorPitch: '1234567890' }).success).toBe(true);
   });
 
-  it('rejects pitches over 200 characters', () => {
-    const result = pitchStepSchema.safeParse({ elevatorPitch: 'A'.repeat(201) });
-    expect(result.success).toBe(false);
+  it('accepts a multi-sentence pitch well over 200 characters', () => {
+    expect(pitchStepSchema.safeParse({ elevatorPitch: 'A'.repeat(600) }).success).toBe(true);
   });
 
-  it('accepts pitch at exactly 200 characters', () => {
-    expect(pitchStepSchema.safeParse({ elevatorPitch: 'A'.repeat(200) }).success).toBe(true);
+  it('accepts pitch at exactly 1000 characters', () => {
+    expect(pitchStepSchema.safeParse({ elevatorPitch: 'A'.repeat(1000) }).success).toBe(true);
+  });
+
+  it('rejects pitches over 1000 characters', () => {
+    const result = pitchStepSchema.safeParse({ elevatorPitch: 'A'.repeat(1001) });
+    expect(result.success).toBe(false);
   });
 });
 

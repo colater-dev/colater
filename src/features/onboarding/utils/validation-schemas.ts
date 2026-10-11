@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 
 export const nameStepSchema = z.object({
     brandName: z.string()
@@ -10,7 +11,7 @@ export const nameStepSchema = z.object({
 export const pitchStepSchema = z.object({
     elevatorPitch: z.string()
         .min(10, 'Please provide more detail (at least 10 characters)')
-        .max(200, 'Keep it concise (under 200 characters)'),
+        .max(ELEVATOR_PITCH_MAX, `Please keep it under ${ELEVATOR_PITCH_MAX} characters`),
 });
 
 export const audienceStepSchema = z.object({

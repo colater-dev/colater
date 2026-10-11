@@ -8,6 +8,7 @@ import { requireServerAuth } from '@/lib/server-auth';
 import { createServerCredits, InsufficientCreditsError } from '@/lib/server-credits';
 import { CREDIT_COSTS } from '@/lib/credits';
 import { isTagInGroup, tagLabel } from '@/lib/brand-tags';
+import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 import { buildTagQuestions, selectSuggestedTags } from '@/lib/tag-suggestions';
 import { jevEvaluate } from '@/ai/jev';
 import { pickRecipes } from '@/ai/studio/recipes';
@@ -41,7 +42,7 @@ export async function suggestTags(idToken: string, name: string, pitch: string):
 
 const BrandInput = z.object({
   name: z.string().trim().min(1).max(60),
-  pitch: z.string().trim().min(5).max(200),
+  pitch: z.string().trim().min(5).max(ELEVATOR_PITCH_MAX),
   audienceTags: z.array(z.string()).min(1).max(5).refine(t => t.every(id => isTagInGroup('audience', id)), 'Unknown audience tag'),
   styleTags: z.array(z.string()).min(1).max(5).refine(t => t.every(id => isTagInGroup('style', id)), 'Unknown style tag'),
 });

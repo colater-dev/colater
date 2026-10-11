@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 import { AUDIENCE_TAGS, STYLE_TAGS } from '@/lib/brand-tags';
 import { TagPicker } from '@/features/studio/components/tag-picker';
 import { suggestTags, createStudioBrand, startRound } from '@/app/studio/actions';
@@ -69,7 +71,7 @@ export function StartClient() {
     <main className="mx-auto max-w-2xl space-y-8 px-4 pb-16 pt-24">
       <div className="space-y-3">
         <Input aria-label="Brand name" placeholder="Brand name" value={name} onChange={e => setName(e.target.value)} className="h-12 text-lg" maxLength={60} />
-        <Input aria-label="What it does" placeholder="What does it do, in one sentence?" value={pitch} onChange={e => setPitch(e.target.value)} className="h-12" maxLength={200} />
+        <Textarea aria-label="What it does" placeholder="What does it do?" value={pitch} onChange={e => setPitch(e.target.value)} rows={3} maxLength={ELEVATOR_PITCH_MAX} />
       </div>
       <div className="space-y-6" onClickCapture={() => { touched.current = true; }}>
         {isSuggesting && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Suggesting tags…</p>}
