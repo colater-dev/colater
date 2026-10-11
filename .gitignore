@@ -41,3 +41,5 @@ firebase-debug.log
 
 # Temp/generated files
 *.backup
+firestore-debug.log
+ui-debug.log
