@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { createCreditsService } from '@/services/credits.service';
 import type { UserCredits } from '@/lib/credits';
+import { ensureCreditProfile } from '@/app/actions/credits';
 
 /**
  * Hook that provides the current user's credit balance in real-time.
@@ -25,12 +26,14 @@ export function useCredits() {
 
   const { data: profile, isLoading } = useDoc<UserCredits>(profileRef);
 
-  // Auto-initialize credits for new users
+  // Auto-initialize credits for new users (server-side; clients can't write balances)
+  const initRequested = useRef(false);
   useEffect(() => {
-    if (user && !isLoading && !profile) {
-      creditsService.initializeCredits(user.uid).catch(console.error);
+    if (user && !isLoading && !profile && !initRequested.current) {
+      initRequested.current = true;
+      user.getIdToken().then(ensureCreditProfile).catch(console.error);
     }
-  }, [user, isLoading, profile, creditsService]);
+  }, [user, isLoading, profile]);
 
   return {
     balance: profile?.balance ?? 0,

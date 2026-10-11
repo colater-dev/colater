@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:local": "NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 next dev --turbopack",
+    "dev:local": "NEXT_DIST_DIR=.next-local NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 next dev --turbopack",
     "emulators": "firebase emulators:start --only auth,firestore --project studio-6830756272-ca1a2",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
@@ -82,6 +82,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@firebase/rules-unit-testing": "4.0.1",
     "@types/get-image-colors": "^4.0.5",
     "@types/node": "^20",
     "@types/react": "^19.0.0",

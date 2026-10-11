@@ -29,6 +29,7 @@ import { ContentCard } from '@/components/layout';
 import { TutorialModal } from '@/features/onboarding/components';
 import { BRAND_FONTS } from '@/config/brand-fonts';
 import { useCredits } from '@/hooks/use-credits';
+import { spendCredits } from '@/app/actions/credits';
 import { CREDIT_COSTS, type CreditAction } from '@/lib/credits';
 import type { Brand, Logo } from '@/lib/types';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -52,7 +53,7 @@ export function BrandDetailClient() {
     const [logoConcept, setLogoConcept] = useState<string | null>(null);
     const processedLogoCountRef = useRef<number>(0);
 
-    const { balance: creditBalance, creditsService } = useCredits();
+    const { balance: creditBalance } = useCredits();
 
     const brandService = useMemo(() => createBrandService(firestore), [firestore]);
     const logoService = useMemo(() => createLogoService(firestore), [firestore]);
@@ -70,8 +71,9 @@ export function BrandDetailClient() {
             return false;
         }
         try {
-            await creditsService.deductCredits(user.uid, action);
-            return true;
+            const result = await spendCredits(await user.getIdToken(), action);
+            if (result.success) return true;
+            throw new Error(result.error);
         } catch {
             toast({
                 variant: 'destructive',
@@ -80,7 +82,7 @@ export function BrandDetailClient() {
             });
             return false;
         }
-    }, [user, creditBalance, creditsService, toast]);
+    }, [user, creditBalance, toast]);
 
     const brandRef = useMemoFirebase(
         () =>

@@ -2,7 +2,8 @@ import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // `npm run dev:local` (emulators) builds into its own dir so it can run alongside `npm run dev`.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   async headers() {
     return [
       {

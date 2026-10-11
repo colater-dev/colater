@@ -151,31 +151,33 @@ service cloud.firestore {
           allow update: if isExistingOwner(userId);
           allow delete: if isExistingOwner(userId);
         }
+
+        /**
+         * @description Studio rounds and directions. Written only by server actions.
+         */
+        match /rounds/{roundId} {
+          allow get, list: if isOwner(userId);
+          allow create, update, delete: if false;
+        }
+        match /directions/{directionId} {
+          allow get, list: if isOwner(userId);
+          allow create, update, delete: if false;
+        }
     }
 
     /**
-     * @description User credit profiles for the credits system.
-     * @path /userProfiles/{userId}
-     * @principle Only the authenticated owner can read/write their own credit profile.
+     * @description Credit profiles. Read-only for the owner; all writes go through
+     * server actions using the Admin SDK (src/lib/server-credits.ts).
      */
     match /userProfiles/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['balance', 'totalPurchased', 'totalUsed']);
-      allow delete: if false;
+      allow list, create, update, delete: if false;
 
-      /**
-       * @description Credit transaction history.
-       * @path /userProfiles/{userId}/transactions/{transactionId}
-       */
       match /transactions/{transactionId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update, delete: if false;
+        allow get, list: if isOwner(userId);
+        allow create, update, delete: if false;
       }
+      // charges/{key} has no match block: denied to clients.
     }
 
     /**

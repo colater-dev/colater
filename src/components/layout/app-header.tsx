@@ -15,10 +15,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut, Loader2, Coins } from 'lucide-react';
+import { LogOut, Loader2, Coins, Plus } from 'lucide-react';
 import { Menu } from '@/components/animate-ui/icons/menu';
 import { createBrandService } from '@/services';
 import { useCredits } from '@/hooks/use-credits';
+import { purchaseCredits } from '@/app/actions';
 import type { Brand } from '@/lib/types';
 
 function getInitials(name: string | null | undefined): string {
@@ -124,17 +125,28 @@ export function AppHeader({ onMenuClick, isSidebarOpen }: AppHeaderProps) {
             {/* User info on the right */}
             {user && (
                 <div className="flex items-center gap-3">
-                <Link
-                    href="/credits"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors text-sm font-medium"
-                >
-                    <Coins className="w-3.5 h-3.5 text-primary" />
-                    {isCreditsLoading ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                        <span>{creditBalance}</span>
-                    )}
-                </Link>
+                <div className="flex items-center gap-1">
+                    <Link
+                        href="/credits"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors text-sm font-medium"
+                    >
+                        <Coins className="w-3.5 h-3.5 text-primary" />
+                        {isCreditsLoading ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                            <span>{creditBalance}</span>
+                        )}
+                    </Link>
+                    <button
+                        onClick={async () => {
+                            if (user) await purchaseCredits(await user.getIdToken(), 'pack-50').catch(console.error);
+                        }}
+                        className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary"
+                        title="Add 50 credits (mock purchase)"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                    </button>
+                </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <button className="flex items-center gap-4 hover:opacity-80 transition-opacity focus:outline-none">

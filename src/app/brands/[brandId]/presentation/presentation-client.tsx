@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ErrorBoundary } from '@/components/error-boundary';
 import { useCredits } from '@/hooks/use-credits';
+import { spendCredits } from '@/app/actions/credits';
 import { CREDIT_COSTS } from '@/lib/credits';
 
 export default function PresentationClient() {
@@ -44,7 +45,7 @@ export default function PresentationClient() {
     const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { balance: creditBalance, creditsService } = useCredits();
+    const { balance: creditBalance } = useCredits();
 
     const presentationService = useMemo(() => createPresentationService(firestore), [firestore]);
 
@@ -97,7 +98,8 @@ export default function PresentationClient() {
                         });
                         return;
                     }
-                    await creditsService.deductCredits(user.uid, 'presentationNarrative');
+                    const charge = await spendCredits(await user.getIdToken(), 'presentationNarrative');
+                    if (!charge.success) throw new Error(charge.error);
 
                     generatingRef.current = true;
                     setIsGenerating(true);
@@ -152,7 +154,7 @@ export default function PresentationClient() {
         };
 
         loadPresentation();
-    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, creditsService, auth]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [user, brandId, presentationService, brand, activeLogo, activePalette, toast, creditBalance, auth]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Keyboard Navigation
     useEffect(() => {
