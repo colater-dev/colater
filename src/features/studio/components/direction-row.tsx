@@ -1,12 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { AlertCircle, Heart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SlideFrame } from './slide-frame';
 import { SlidePlaceholder } from './slide-placeholder';
 import { SlideFeedback } from './slide-feedback';
-import { MarkSlide } from './slides/mark-slide';
 import { LockupSlide } from './slides/lockup-slide';
 import { StickerSlide } from './slides/sticker-slide';
 import { AppIconSlide } from './slides/app-icon-slide';
@@ -19,6 +19,7 @@ import { SocialSlide } from './slides/social-slide';
 import { VoiceSlide } from './slides/voice-slide';
 import { VectorSlide } from './slides/vector-slide';
 import { stageLabel } from '../stage-label';
+import { nextLockupLayout, type LockupLayout } from '../lockup-layout';
 import { GENERATE_COSTS, type GenerateKind, type PaidSlideKind, type StudioDirection } from '../types';
 
 const PAID: { kind: Exclude<PaidSlideKind, 'color'>; label: string }[] = [
@@ -42,6 +43,10 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
   const palette = slides.color?.palette;
   const colorPending = slides.color?.status === 'pending' || busy('color');
   const voice = slides.voice?.status === 'ready' ? slides.voice : undefined;
+  // Slides 1 and 2 are the same mark/lockup in different layouts; each click moves one on.
+  const [layouts, setLayouts] = useState<[LockupLayout, LockupLayout]>(['mark', 'horizontal']);
+  const cycle = (i: 0 | 1) => setLayouts(ls => (i === 0 ? [nextLockupLayout(ls[0]), ls[1]] : [ls[0], nextLockupLayout(ls[1])]));
+  const lockupCaption = (l: LockupLayout) => (l === 'mark' ? concept?.captions.mark : concept?.captions.lockup);
   const fb = (kind: 'mark' | 'lockup' | 'color' | 'voice') => <SlideFeedback kind={kind} onApply={f => onGenerate(kind, f)} />;
 
   if (status === 'failed') {
@@ -80,8 +85,11 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
         )}
       </div>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} palette={palette} />}</SlideFrame>
-        <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
+        {([0, 1] as const).map(i => (
+          <SlideFrame key={i} status={frame} caption={lockupCaption(layouts[i])} overlay={fb(i === 0 ? 'mark' : 'lockup')}>
+            {markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} layout={layouts[i]} onNext={() => cycle(i)} />}
+          </SlideFrame>
+        ))}
         <SlideFrame status={frame} caption="In motion">{markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption={direction.stickerBg && concept?.stickerSurface ? `Sticker · ${concept.stickerSurface}` : concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} backgroundUrl={direction.stickerBg?.url} />}</SlideFrame>
         <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>

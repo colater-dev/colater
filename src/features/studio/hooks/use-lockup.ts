@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState, type CSSProperties, type RefObjec
 import { hexToRgb } from '@/lib/color-utils';
 import { getProxyUrl } from '@/lib/image-utils';
 import { measureInk, recolorPixels } from '@/lib/recolor';
-import { capCenterShift, fitScale, lockupLayout } from '../lockup-layout';
+import { capCenterShift, capTopInset, fitBoxScale, lockupLayout, stackedLayout, type LockupLayout } from '../lockup-layout';
 
 interface TrimmedMark { src: string; aspect: number; density: number }
 interface FontMetrics { ascent: number; descent: number; cap: number }
@@ -69,40 +69,54 @@ function useFontMetrics(cssVariable: string): FontMetrics {
 }
 
 /**
- * Horizontal lockup sizing. Everything is in em of the name's font size, which is set so the
- * capitals are `capCqw` tall, then scaled to fit `maxWidth` of the slide (growing at most `maxGrow`).
+ * Mark + name sizing for one layout. Everything is in em of the name's font size, which is set so
+ * the capitals are `capCqw` tall, then the whole thing is scaled to fit `maxWidth` x `maxHeight`
+ * of the slide (growing at most `maxGrow`). The mark-only layout uses the same mark size, fitted.
  */
-export function useLockup({ rowRef, markUrl, markColor, fontVariable, text, capCqw, maxWidth = 0.8, maxGrow = 1 }: {
+export function useLockup({ rowRef, layout = 'horizontal', markUrl, markColor, fontVariable, text, capCqw, maxWidth = 0.8, maxHeight = 0.7, maxGrow = 1 }: {
   /** The flex row holding mark and name; measured to fit the slide. */
   rowRef: RefObject<HTMLDivElement | null>;
+  layout?: LockupLayout;
   markUrl: string;
   markColor: string;
   fontVariable: string;
   text: string;
   capCqw: number;
   maxWidth?: number;
+  maxHeight?: number;
   maxGrow?: number;
 }) {
   const mark = useTrimmedMark(markUrl, markColor);
   const metrics = useFontMetrics(fontVariable);
   const [scale, setScale] = useState(1);
 
-  const layout = lockupLayout({ aspect: mark?.aspect ?? 1, density: mark?.density ?? 0.5 });
+  const shape = { aspect: mark?.aspect ?? 1, density: mark?.density ?? 0.5 };
+  const dims = layout === 'stacked' ? stackedLayout(shape) : lockupLayout(shape);
   const cap = metrics.cap; // cap height in em
 
   useLayoutEffect(() => {
     const row = rowRef.current;
     const box = row?.parentElement;
     if (!row || !box || !mark) return;
-    const natural = row.offsetWidth / scale;
-    const next = fitScale(natural, box.clientWidth * maxWidth, maxGrow);
+    const next = fitBoxScale(
+      { width: row.offsetWidth / scale, height: row.offsetHeight / scale },
+      { width: box.clientWidth * maxWidth, height: box.clientHeight * maxHeight },
+      maxGrow
+    );
     if (Math.abs(next - scale) > 0.01) setScale(next);
-  }, [rowRef, mark, metrics, text, scale, maxWidth, maxGrow]);
+  }, [rowRef, layout, mark, metrics, text, scale, maxWidth, maxHeight, maxGrow]);
 
+  const stacked = layout === 'stacked';
   return {
     mark: mark?.src ?? null,
-    rowStyle: { fontSize: `${(capCqw / cap) * scale}cqw`, gap: `${layout.gap * cap}em`, width: 'max-content' } satisfies CSSProperties,
-    markStyle: { height: `${layout.markHeight * cap}em`, width: `${layout.markWidth * cap}em` } satisfies CSSProperties,
-    textStyle: { display: 'inline-block', lineHeight: 1, transform: `translateY(${capCenterShift(metrics)}em)` } satisfies CSSProperties,
+    showText: layout !== 'mark',
+    rowStyle: {
+      display: 'flex', alignItems: 'center', flexDirection: stacked ? 'column' : 'row', width: 'max-content',
+      fontSize: `${(capCqw / cap) * scale}cqw`, gap: `${dims.gap * cap}em`,
+    } satisfies CSSProperties,
+    markStyle: { height: `${dims.markHeight * cap}em`, width: `${dims.markWidth * cap}em`, flexShrink: 0 } satisfies CSSProperties,
+    textStyle: (stacked
+      ? { display: 'block', lineHeight: 1, marginTop: `${-capTopInset(metrics)}em` }
+      : { display: 'inline-block', lineHeight: 1, transform: `translateY(${capCenterShift(metrics)}em)` }) satisfies CSSProperties,
   };
 }

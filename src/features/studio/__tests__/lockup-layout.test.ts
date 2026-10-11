@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lockupLayout, capCenterShift, fitScale } from '../lockup-layout';
+import { lockupLayout, stackedLayout, capCenterShift, capTopInset, fitScale, fitBoxScale, nextLockupLayout } from '../lockup-layout';
 
 const solid = 0.6;
 
@@ -48,5 +48,43 @@ describe('fitScale', () => {
   it('can grow a short lockup up to a limit when allowed', () => {
     expect(fitScale(100, 256, 1.3)).toBe(1.3);
     expect(fitScale(220, 256, 1.3)).toBeCloseTo(256 / 220, 5);
+  });
+});
+
+describe('stackedLayout (units: cap heights)', () => {
+  it('a square solid mark sits about 3.2 cap heights tall above the name, 0.8 apart', () => {
+    const l = stackedLayout({ aspect: 1, density: solid });
+    expect(l.markHeight).toBeCloseTo(3.2, 2);
+    expect(l.gap).toBe(0.8);
+  });
+  it('is larger than the horizontal mark, since it has the full width to itself', () => {
+    expect(stackedLayout({ aspect: 1, density: solid }).markHeight).toBeGreaterThan(lockupLayout({ aspect: 1, density: solid }).markHeight);
+  });
+  it('wide marks get shorter, tall marks taller, within limits', () => {
+    expect(stackedLayout({ aspect: 2.5, density: solid }).markHeight).toBeLessThan(3.2);
+    expect(stackedLayout({ aspect: 0.2, density: solid }).markHeight).toBe(4.2);
+    expect(stackedLayout({ aspect: 10, density: solid }).markWidth).toBeLessThanOrEqual(7);
+  });
+});
+
+describe('fitBoxScale', () => {
+  it('uses whichever of width or height is tighter', () => {
+    expect(fitBoxScale({ width: 100, height: 100 }, { width: 200, height: 50 }, 3)).toBeCloseTo(0.5, 5);
+    expect(fitBoxScale({ width: 100, height: 10 }, { width: 150, height: 50 }, 3)).toBeCloseTo(1.5, 5);
+  });
+});
+
+describe('nextLockupLayout', () => {
+  it('cycles mark, horizontal, stacked', () => {
+    expect(nextLockupLayout('mark')).toBe('horizontal');
+    expect(nextLockupLayout('horizontal')).toBe('stacked');
+    expect(nextLockupLayout('stacked')).toBe('mark');
+  });
+});
+
+describe('capTopInset', () => {
+  it('is the empty space above the capitals in a 1em line box', () => {
+    // half-leading (1 - 1.15)/2 = -0.075, baseline at 0.825, cap top at 0.825 - 0.7 = 0.125em.
+    expect(capTopInset({ ascent: 0.9, descent: 0.25, cap: 0.7 })).toBeCloseTo(0.125, 5);
   });
 });
