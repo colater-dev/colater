@@ -11,7 +11,11 @@ export const CREDIT_COSTS = {
   presentationNarrative: 5,
   brandCompletion: 3,
   brandSuggestions: 3,
+  studioRound: 15,
 } as const;
+
+/** Refund per failed direction in a Studio round (15 / 3). */
+export const STUDIO_DIRECTION_REFUND = 5;
 
 export type CreditAction = keyof typeof CREDIT_COSTS;
 
@@ -26,6 +30,7 @@ export const CREDIT_ACTION_LABELS: Record<CreditAction, string> = {
   presentationNarrative: 'Presentation Narrative',
   brandCompletion: 'Brand Completion',
   brandSuggestions: 'Brand Suggestions',
+  studioRound: 'Studio round (3 directions)',
 };
 
 /** Credit packages available for purchase */
