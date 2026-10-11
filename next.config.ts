@@ -25,6 +25,8 @@ const nextConfig: NextConfig = {
   //   ignoreDuringBuilds: true,
   // },
   images: {
+    // Next 16 only allows q=75 by default; getProxyUrl (src/lib/image-utils.ts) requests q=80.
+    qualities: [75, 80],
     remotePatterns: [
       {
         protocol: 'https',
