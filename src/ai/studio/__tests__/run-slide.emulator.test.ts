@@ -77,4 +77,16 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
     await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'lockup', chargeKey: null, cost: 0, brief: base, feedback: { chips: ['different font'] } });
     expect((await ref.get()).data()?.fontName).toBe('Archivo');
   });
+
+  it('a failed mark redo keeps the old mark visible and refunds', async () => {
+    const { uid, credits, ref, deps, base } = await setup({ generateConcept: async () => { throw new Error('Concept generation timed out'); } });
+    await credits.charge({ uid, amount: 5, action: 'studioMarkRedo', key: 'k4' });
+    await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'mark', chargeKey: 'k4', cost: 5, brief: base, feedback: { chips: ['simpler'] } });
+    const d = (await ref.get()).data()!;
+    expect(d.status).toBe('ready');
+    expect(d.markUrl).toBe('https://r2.example/old.png');
+    expect(d.redoError).toContain('timed out');
+    expect(d.slides.vector.status).toBe('ready');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
 });

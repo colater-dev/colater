@@ -31,8 +31,10 @@ export interface SlideJob {
 export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
   const ref = deps.db.doc(`users/${job.uid}/brands/${job.brandId}/directions/${job.directionId}`);
   const now = () => FieldValue.serverTimestamp();
+  let hadMark = false;
   try {
     const d = (await ref.get()).data();
+    hadMark = !!d?.markUrl;
     if (!d) throw new Error('Direction not found');
     const slideBrief: SlideBrief = { ...job.brief, idea: d.concept?.idea ?? job.brief.pitch, feedback: job.feedback };
 
@@ -61,7 +63,7 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
         await ref.update({ concept, stage: 'mark', updatedAt: now() });
         const image = await deps.renderMark(d.recipe.model, concept.markPrompt);
         const markUrl = await deps.upload(image.buffer, image.contentType, job.uid);
-        await ref.update({ status: 'ready', markUrl, 'slides.vector': FieldValue.delete(), updatedAt: now() });
+        await ref.update({ status: 'ready', markUrl, redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
         return;
       }
       case 'lockup': {
@@ -74,7 +76,9 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
     const message = (error instanceof Error ? error.message : String(error)).slice(0, 300);
     console.error(`[studio] slide ${job.kind} on ${job.directionId} failed:`, error);
     const failure = job.kind === 'mark'
-      ? { status: 'failed', error: message }
+      ? hadMark
+        ? { status: 'ready', stage: 'mark', redoError: message } // keep the existing mark visible
+        : { status: 'failed', error: message }
       : job.kind === 'lockup'
         ? {}
         : { [`slides.${job.kind}.status`]: 'failed', [`slides.${job.kind}.error`]: message };

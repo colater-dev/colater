@@ -1,31 +1,54 @@
 'use client';
 
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SlideFrame } from './slide-frame';
+import { SlidePlaceholder } from './slide-placeholder';
+import { SlideFeedback } from './slide-feedback';
 import { MarkSlide } from './slides/mark-slide';
 import { LockupSlide } from './slides/lockup-slide';
 import { StickerSlide } from './slides/sticker-slide';
 import { AppIconSlide } from './slides/app-icon-slide';
 import { TypographySlide } from './slides/typography-slide';
-import type { StudioDirection } from '../types';
+import { ColorSlide } from './slides/color-slide';
+import { BusinessCardSlide } from './slides/business-card-slide';
+import { SocialSlide } from './slides/social-slide';
+import { VoiceSlide } from './slides/voice-slide';
+import { VectorSlide } from './slides/vector-slide';
+import { stageLabel } from '../stage-label';
+import { GENERATE_COSTS, type GenerateKind, type PaidSlideKind, type StudioDirection } from '../types';
 
-export function DirectionRow({ direction, brandName, collapsed, onPick, onVariations }: {
+const PAID: { kind: PaidSlideKind; label: string }[] = [
+  { kind: 'color', label: 'Color palette' },
+  { kind: 'voice', label: 'Voice' },
+  { kind: 'vector', label: 'Vector file' },
+];
+
+export function DirectionRow({ direction, brandName, collapsed, onPick, onVariations, onGenerate, busy }: {
   direction: StudioDirection;
   brandName: string;
   collapsed: boolean;
   onPick: () => void;
   onVariations: () => void;
+  onGenerate: (kind: GenerateKind, feedback?: { chips: string[]; note?: string }) => void;
+  busy: (kind: GenerateKind) => boolean;
 }) {
-  const { status, concept, markUrl, fontName, picked } = direction;
+  const { status, concept, markUrl, fontName, picked, slides = {} } = direction;
   const ready = status === 'ready' && !!markUrl;
-  const frame = status === 'failed' ? 'failed' : ready ? 'ready' : 'loading';
+  const frame = ready ? 'ready' : 'loading';
+  const progress = stageLabel(direction);
+  const palette = slides.color?.status === 'ready' ? slides.color.palette : undefined;
+  const voice = slides.voice?.status === 'ready' ? slides.voice : undefined;
+  const fb = (kind: 'mark' | 'lockup' | 'color' | 'voice') => <SlideFeedback kind={kind} onApply={f => onGenerate(kind, f)} />;
 
   if (status === 'failed') {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
-        <AlertCircle className="h-4 w-4" /> This direction couldn&apos;t be generated; its credits were refunded.
+      <div className="flex items-center justify-between gap-2 rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
+        <span className="flex items-center gap-2"><AlertCircle className="h-4 w-4" />{concept?.idea ? `“${concept.idea}” couldn't be drawn` : "This direction couldn't be generated"}; its credits were refunded.</span>
+        <Button size="sm" variant="outline" onClick={() => onGenerate('mark')} disabled={busy('mark')}>
+          {busy('mark') ? <Loader2 className="h-3 w-3 animate-spin" /> : `Retry · ${GENERATE_COSTS.mark} credits`}
+        </Button>
       </div>
     );
   }
@@ -33,7 +56,11 @@ export function DirectionRow({ direction, brandName, collapsed, onPick, onVariat
   return (
     <section className={cn('space-y-3 transition-opacity', collapsed && 'opacity-50 hover:opacity-100')}>
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm">{concept?.idea ?? 'Thinking…'}</p>
+        <div>
+          <p className="text-sm">{concept?.idea ?? ' '}</p>
+          {progress && <p className="flex items-center gap-1 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />{progress}</p>}
+          {!progress && direction.redoError && <p className="text-xs text-muted-foreground">The last redo didn&apos;t work; its credits were refunded.</p>}
+        </div>
         {ready && (
           <div className="flex shrink-0 gap-2">
             <Button size="sm" variant="ghost" onClick={onVariations}>More like this</Button>
@@ -44,11 +71,25 @@ export function DirectionRow({ direction, brandName, collapsed, onPick, onVariat
         )}
       </div>
       <div className={cn('flex gap-4 overflow-x-auto pb-2', collapsed && 'max-h-24 overflow-hidden')}>
-        <SlideFrame status={frame} caption={concept?.captions.mark}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
-        <SlideFrame status={frame} caption={concept?.captions.lockup}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
+        <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
+        <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>
-        <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} />}</SlideFrame>
-        <SlideFrame status={frame} caption="Typography">{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} />}</SlideFrame>
+        <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>
+        <SlideFrame status={frame} caption="Typography" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} />}</SlideFrame>
+        {ready && palette && <SlideFrame status="ready" caption="Color" overlay={fb('color')}><ColorSlide markUrl={markUrl!} palette={palette} /></SlideFrame>}
+        {ready && palette && <SlideFrame status="ready" caption="Business card"><BusinessCardSlide markUrl={markUrl!} palette={palette} name={brandName} fontName={fontName} /></SlideFrame>}
+        {ready && palette && <SlideFrame status="ready" caption="Social profile"><SocialSlide markUrl={markUrl!} palette={palette} name={brandName} tagline={voice?.tagline} /></SlideFrame>}
+        {ready && voice && <SlideFrame status="ready" caption="Voice" overlay={fb('voice')}><VoiceSlide tagline={voice.tagline!} story={voice.story!} palette={palette} /></SlideFrame>}
+        {ready && slides.vector?.status === 'ready' && <SlideFrame status="ready" caption="Vector"><VectorSlide svgUrl={slides.vector.svgUrl!} name={brandName} /></SlideFrame>}
+        {ready && PAID.filter(p => slides[p.kind]?.status !== 'ready').map(p => (
+          <SlidePlaceholder
+            key={p.kind}
+            label={p.label}
+            cost={GENERATE_COSTS[p.kind]}
+            state={slides[p.kind]?.status === 'pending' || busy(p.kind) ? 'pending' : slides[p.kind]?.status === 'failed' ? 'failed' : 'idle'}
+            onGenerate={() => onGenerate(p.kind)}
+          />
+        ))}
       </div>
     </section>
   );

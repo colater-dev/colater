@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useStudioData } from '@/features/studio/hooks/use-studio-data';
 import { RoundBlock } from '@/features/studio/components/round-block';
+import { useSlideRequest } from '@/features/studio/hooks/use-slide-request';
 import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
 import { startRound, pickDirection, sweepStudio } from '@/app/studio/actions';
 import { CREDIT_COSTS } from '@/lib/credits';
@@ -21,6 +22,7 @@ export function StudioClient({ brandId }: { brandId: string }) {
   const [isStarting, setIsStarting] = useState(false);
   const [creditError, setCreditError] = useState<string | null>(null);
   const roundIdRef = useRef<string | null>(null);
+  const slides = useSlideRequest(brandId);
 
   useEffect(() => {
     if (user) user.getIdToken().then(token => sweepStudio(token, brandId)).catch(console.error);
@@ -73,8 +75,8 @@ export function StudioClient({ brandId }: { brandId: string }) {
           </Button>
         </div>
       </header>
-      {creditError && (
-        <p className="text-sm text-muted-foreground">{creditError} <Link href="/credits" className="underline">Get credits</Link></p>
+      {(creditError ?? slides.creditError) && (
+        <p className="text-sm text-muted-foreground">{creditError ?? slides.creditError} <Link href="/credits" className="underline">Get credits</Link></p>
       )}
       {rounds.length === 0 && <p className="text-muted-foreground">No directions yet. Press “New directions” to start.</p>}
       {rounds.map(({ round, directions }, i) => (
@@ -86,6 +88,8 @@ export function StudioClient({ brandId }: { brandId: string }) {
           index={rounds.length - i}
           onPick={pick}
           onVariations={id => newRound(id)}
+          onGenerate={slides.request}
+          isBusy={(id, kind) => !!slides.busy[`${id}:${kind}`]}
         />
       ))}
     </main>

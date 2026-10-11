@@ -27,6 +27,7 @@ export interface StudioDirection {
   stage?: DirectionStage;
   slides?: DirectionSlides;
   chargeKey?: string;
+  redoError?: string;
 }
 
 export const ROUND_FEEDBACK_CHIPS = ['more playful', 'less literal', 'bolder', 'simpler'] as const;

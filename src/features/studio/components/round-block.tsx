@@ -1,15 +1,17 @@
 'use client';
 
 import { DirectionRow } from './direction-row';
-import type { StudioDirection, StudioRound } from '../types';
+import type { GenerateKind, StudioDirection, StudioRound } from '../types';
 
-export function RoundBlock({ round, directions, brandName, index, onPick, onVariations }: {
+export function RoundBlock({ round, directions, brandName, index, onPick, onVariations, onGenerate, isBusy }: {
   round: StudioRound;
   directions: StudioDirection[];
   brandName: string;
   index: number;
   onPick: (directionId: string) => void;
   onVariations: (directionId: string) => void;
+  onGenerate: (directionId: string, kind: GenerateKind, feedback?: { chips: string[]; note?: string }) => void;
+  isBusy: (directionId: string, kind: GenerateKind) => boolean;
 }) {
   const pickedId = directions.find(d => d.picked)?.id;
   return (
@@ -25,6 +27,8 @@ export function RoundBlock({ round, directions, brandName, index, onPick, onVari
           collapsed={!!pickedId && pickedId !== d.id}
           onPick={() => onPick(d.id)}
           onVariations={() => onVariations(d.id)}
+          onGenerate={(k, f) => onGenerate(d.id, k, f)}
+          busy={k => isBusy(d.id, k)}
         />
       ))}
     </div>
