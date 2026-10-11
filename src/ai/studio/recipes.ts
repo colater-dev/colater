@@ -25,8 +25,23 @@ function shuffle<T>(items: readonly T[], random: () => number): T[] {
   return a;
 }
 
-/** Three diverse recipes: every model once, three different idea types, style leans spread over the user's tags. */
-export function pickRecipes(styleTags: string[], random: () => number = Math.random): Recipe[] {
+/**
+ * Diverse recipes. Three: every model once, three different idea types, style leans spread over the user's tags.
+ * One: a random idea/model combo the brand hasn't used recently (falls back to any combo).
+ */
+export function pickRecipes(
+  styleTags: string[],
+  random: () => number = Math.random,
+  { count = 3, avoid = [] }: { count?: 1 | 3; avoid?: Pick<Recipe, 'ideaType' | 'model'>[] } = {}
+): Recipe[] {
+  if (count === 1) {
+    const combos = IDEA_TYPES.flatMap(ideaType => (Object.keys(LOGO_MODELS) as LogoProvider[]).map(model => ({ ideaType, model })));
+    const fresh = combos.filter(c => !avoid.some(a => a.ideaType === c.ideaType && a.model === c.model));
+    const pool = fresh.length ? fresh : combos;
+    const pick = pool[Math.floor(random() * pool.length)];
+    const leans = styleTags.length ? styleTags : ['minimal'];
+    return [{ ...pick, styleLean: leans[Math.floor(random() * leans.length)] }];
+  }
   const models = shuffle(Object.keys(LOGO_MODELS) as LogoProvider[], random);
   const ideas = shuffle(IDEA_TYPES, random).slice(0, 3);
   const leans = styleTags.length ? shuffle(styleTags, random) : ['minimal'];

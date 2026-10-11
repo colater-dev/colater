@@ -23,4 +23,16 @@ describe('pickRecipes', () => {
   it('falls back to minimal when no style tags are given', () => {
     expect(pickRecipes([], seeded(1)).every(x => x.styleLean === 'minimal')).toBe(true);
   });
+  it('returns a single recipe when asked for one, avoiding recently used idea/model combos', () => {
+    const recent = [
+      { ideaType: 'lettermark' as const, model: 'recraft' as const },
+      { ideaType: 'negative-space' as const, model: 'recraft' as const },
+      { ideaType: 'literal-symbol' as const, model: 'recraft' as const },
+    ];
+    for (let s = 1; s < 30; s++) {
+      const r = pickRecipes(['calm'], seeded(s), { count: 1, avoid: recent });
+      expect(r).toHaveLength(1);
+      expect(recent.some(x => x.ideaType === r[0].ideaType && x.model === r[0].model)).toBe(false);
+    }
+  });
 });

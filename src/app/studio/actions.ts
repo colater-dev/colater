@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { adminDb } from '@/firebase/server';
 import { requireServerAuth } from '@/lib/server-auth';
 import { createServerCredits, InsufficientCreditsError } from '@/lib/server-credits';
-import { CREDIT_COSTS } from '@/lib/credits';
+import { studioRoundCost } from '@/lib/credits';
 import { isTagInGroup, tagLabel } from '@/lib/brand-tags';
 import { ELEVATOR_PITCH_MAX } from '@/lib/brand-limits';
 import { buildTagQuestions, selectSuggestedTags } from '@/lib/tag-suggestions';
@@ -82,7 +82,7 @@ export async function startRound(
   idToken: string,
   brandId: string,
   clientRoundId: string,
-  options: { feedbackChips?: string[]; seedDirectionId?: string } = {}
+  options: { feedbackChips?: string[]; seedDirectionId?: string; count?: 1 | 3 } = {}
 ): Promise<Result<{ roundId: string }>> {
   try {
     const { uid } = await requireServerAuth(idToken);
@@ -101,12 +101,17 @@ export async function startRound(
       ? (await brandRef.collection('directions').doc(seedDirectionId).get()).data()?.concept?.idea
       : undefined;
 
+    const count = options.count === 1 ? 1 : 3;
+    const recent = count === 1
+      ? (await brandRef.collection('directions').orderBy('createdAt', 'desc').limit(6).get()).docs.map(d => d.data().recipe).filter(Boolean)
+      : [];
+
     let created;
     try {
       created = await createRound(adminDb, credits, {
         uid, brandId, clientRoundId, feedbackChips, seedDirectionId,
-        recipes: pickRecipes(brand.styleTags ?? []),
-        cost: CREDIT_COSTS.studioRound,
+        recipes: pickRecipes(brand.styleTags ?? [], Math.random, { count, avoid: recent }),
+        cost: studioRoundCost(count),
       });
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {

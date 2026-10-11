@@ -11,7 +11,7 @@ import { RoundBlock } from '@/features/studio/components/round-block';
 import { useSlideRequest } from '@/features/studio/hooks/use-slide-request';
 import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
 import { startRound, pickDirection, sweepStudio } from '@/app/studio/actions';
-import { CREDIT_COSTS } from '@/lib/credits';
+import { studioRoundCost } from '@/lib/credits';
 import { cn } from '@/lib/utils';
 
 export function StudioClient({ brandId }: { brandId: string }) {
@@ -33,7 +33,7 @@ export function StudioClient({ brandId }: { brandId: string }) {
     setIsStarting(true);
     setCreditError(null);
     roundIdRef.current ??= crypto.randomUUID().replace(/-/g, '');
-    const res = await startRound(await user.getIdToken(), brandId, roundIdRef.current, { feedbackChips: chips, seedDirectionId });
+    const res = await startRound(await user.getIdToken(), brandId, roundIdRef.current, { feedbackChips: chips, seedDirectionId, count: 1 });
     roundIdRef.current = null;
     if (res.insufficient) setCreditError(res.error ?? 'Not enough credits');
     else if (!res.success) toast({ variant: 'destructive', title: 'Could not start a new round', description: res.error });
@@ -71,21 +71,19 @@ export function StudioClient({ brandId }: { brandId: string }) {
             </button>
           ))}
           <Button onClick={() => newRound()} disabled={isStarting}>
-            {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : `New directions · ${CREDIT_COSTS.studioRound}`}
+            {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : `New direction · ${studioRoundCost(1)}`}
           </Button>
         </div>
       </header>
       {(creditError ?? slides.creditError) && (
         <p className="text-sm text-muted-foreground">{creditError ?? slides.creditError} <Link href="/credits" className="underline">Get credits</Link></p>
       )}
-      {rounds.length === 0 && <p className="text-muted-foreground">No directions yet. Press “New directions” to start.</p>}
-      {rounds.map(({ round, directions }, i) => (
+      {rounds.length === 0 && <p className="text-muted-foreground">No directions yet. Press “New direction” to start.</p>}
+      {rounds.map(({ round, directions }) => (
         <RoundBlock
           key={round.id}
-          round={round}
           directions={directions}
           brandName={brand.latestName}
-          index={rounds.length - i}
           onPick={pick}
           onVariations={id => newRound(id)}
           onGenerate={slides.request}

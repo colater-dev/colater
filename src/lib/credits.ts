@@ -21,6 +21,11 @@ export const CREDIT_COSTS = {
 /** Refund per failed direction in a Studio round (15 / 3). */
 export const STUDIO_DIRECTION_REFUND = 5;
 
+/** A Studio round costs 5 credits per direction (1 for "New direction", 3 for the first round). */
+export function studioRoundCost(count: number): number {
+  return STUDIO_DIRECTION_REFUND * count;
+}
+
 export type CreditAction = keyof typeof CREDIT_COSTS;
 
 /** Display labels for credit actions */
@@ -34,7 +39,7 @@ export const CREDIT_ACTION_LABELS: Record<CreditAction, string> = {
   presentationNarrative: 'Presentation Narrative',
   brandCompletion: 'Brand Completion',
   brandSuggestions: 'Brand Suggestions',
-  studioRound: 'Studio round (3 directions)',
+  studioRound: 'Studio directions',
   studioColor: 'Studio color palette',
   studioVoice: 'Studio voice',
   studioVector: 'Studio vector file',
