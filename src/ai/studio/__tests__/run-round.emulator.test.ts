@@ -29,6 +29,7 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     const credits = createServerCredits(db);
     await credits.charge({ uid, amount: 15, action: 'studioRound', key: 'round_x' });
     const base = `users/${uid}/brands/b/directions`;
+    await db.doc(`users/${uid}/brands/b`).set({ source: 'studio', latestName: 'N' });
     const directions = recipes.map((recipe, i) => ({ id: `d${i}`, recipe }));
     for (const d of directions) await db.doc(`${base}/${d.id}`).set({ roundId: 'r', recipe: d.recipe, status: 'pending' });
     if (existingPalette) await db.doc(`${base}/older`).set({ roundId: 'r0', status: 'ready', paletteName: existingPalette });
@@ -103,5 +104,12 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     const { base } = await setup();
     const d = (await db.doc(`${base}/d0`).get()).data()!;
     expect(d.markQa.score).toBe(7);
+  });
+
+  it('gives the brand a dashboard logo once its directions are ready', async () => {
+    const { uid } = await setup();
+    const brand = (await db.doc(`users/${uid}/brands/b`).get()).data()!;
+    expect(brand.logoUrl).toBe('https://r2.example/mark.png');
+    expect(brand.font).toBe('Caprasimo');
   });
 });

@@ -5,6 +5,7 @@ import type { GenerateKind, PaletteColor } from '@/features/studio/types';
 import type { DirectionBrief, DirectionConcept } from './direction-concept';
 import type { SlideBrief } from './palette';
 import type { MarkQa } from './mark-qa';
+import { syncBrandLogo } from './brand-logo';
 
 export interface SlideDeps {
   db: Firestore;
@@ -74,11 +75,13 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
         const markUrl = await deps.upload(image.buffer, image.contentType, job.uid);
         // Concept and mark change together, so a failed redo never pairs a new idea with the old mark.
         await ref.update({ status: 'ready', markUrl, concept, markQa: image.qa ?? FieldValue.delete(), redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
+        await syncBrandLogo(deps.db, { uid: job.uid, brandId: job.brandId }).catch(console.error);
         return;
       }
       case 'lockup': {
         const fontName = await deps.pickFont({ brandName: job.brief.name, idea: slideBrief.idea, feedback: job.feedback?.chips }, d.fontName ? [d.fontName] : []);
         await ref.update({ fontName, updatedAt: now() });
+        await syncBrandLogo(deps.db, { uid: job.uid, brandId: job.brandId }).catch(console.error);
         return;
       }
     }

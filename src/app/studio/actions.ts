@@ -28,6 +28,7 @@ import { requestSlide } from '@/ai/studio/request-slide';
 import { runSlide } from '@/ai/studio/run-slide';
 import { choosePalette } from '@/ai/studio/palette-picker';
 import { findStickerBackground } from '@/ai/studio/sticker-background';
+import { syncBrandLogo, syncStudioLogos } from '@/ai/studio/brand-logo';
 import { generateVoice } from '@/ai/studio/voice';
 import { vectorizeMark } from '@/ai/studio/vectorize-mark';
 
@@ -163,13 +164,25 @@ export async function favoriteDirection(idToken: string, brandId: string, direct
   try {
     const { uid } = await requireServerAuth(idToken);
     if (!ID.test(brandId) || !ID.test(directionId)) return { success: false, error: 'Invalid id' };
-    return { success: true, data: { favorite: await toggleFavorite(adminDb, { uid, brandId, directionId }) } };
+    const favorite = await toggleFavorite(adminDb, { uid, brandId, directionId });
+    await syncBrandLogo(adminDb, { uid, brandId }).catch(console.error);
+    return { success: true, data: { favorite } };
   } catch (error) {
     return fail(error);
   }
 }
 
 /** Called when the Studio page opens: fails + refunds directions whose background work died. */
+/** Gives Studio brands their dashboard logo; also backfills brands made before this existed. */
+export async function syncDashboardLogos(idToken: string): Promise<Result<{ updated: number }>> {
+  try {
+    const { uid } = await requireServerAuth(idToken);
+    return { success: true, data: { updated: await syncStudioLogos(adminDb, uid) } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
 export async function sweepStudio(idToken: string, brandId: string): Promise<Result<{ swept: number }>> {
   try {
     const { uid } = await requireServerAuth(idToken);

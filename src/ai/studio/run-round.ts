@@ -6,6 +6,7 @@ import type { DirectionBrief, DirectionConcept } from './direction-concept';
 import type { Recipe } from './recipes';
 import type { StickerBackground } from './sticker-background';
 import type { MarkQa } from './mark-qa';
+import { syncBrandLogo } from './brand-logo';
 import type { PaletteColor } from '@/features/studio/types';
 
 export interface RoundDeps {
@@ -78,4 +79,5 @@ export async function runRound(deps: RoundDeps, job: RoundJob): Promise<void> {
     return next;
   };
   await Promise.all(job.directions.map(d => runDirection(deps, job, d, pickPalette)));
+  await syncBrandLogo(deps.db, { uid: job.uid, brandId: job.brandId }).catch(console.error);
 }

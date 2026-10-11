@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { useRequireAuth } from '@/features/auth/hooks';
+import { syncDashboardLogos } from '@/app/studio/actions';
 import { createBrandService } from '@/services';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -126,6 +127,11 @@ export function DashboardClient() {
     );
 
     const { data: brands, isLoading: isLoadingBrands } = useCollection<Brand>(brandsQuery);
+
+    // Studio brands keep their marks on directions; make sure each has a dashboard logo.
+    useEffect(() => {
+        if (user) user.getIdToken().then(syncDashboardLogos).catch(console.error);
+    }, [user]);
 
     if (isLoading || !user) {
         return (
