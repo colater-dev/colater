@@ -1,8 +1,8 @@
 /**
- * Hands out reveal delays so slides that become ready together fall in one after another.
- * A slide that turns ready on its own (after a quiet gap) falls immediately.
+ * Hands out reveal delays so slides that become ready together come out one after another.
+ * A slide that turns ready on its own (after a quiet gap) starts immediately.
  */
-export function createRevealStagger({ step = 90, gap = 250, max = 900, now = () => Date.now() } = {}) {
+export function createRevealStagger({ step = 140, gap = 250, max = 1200, now = () => Date.now() } = {}) {
   const assigned = new Map<string, { delay: number; at: number }>();
   let lastAt = -Infinity;
   let count = 0;
