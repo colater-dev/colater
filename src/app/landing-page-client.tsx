@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser, initiateSmartGoogleSignIn, handleRedirectResult } from '@/firebase';
+import { useAuth, useUser, initiateSmartGoogleSignIn, handleRedirectResult, USE_FIREBASE_EMULATORS } from '@/firebase';
+import { DevEmailLogin } from '@/features/auth/components/dev-email-login';
 import { WelcomeHero } from '@/features/onboarding/components/welcome-hero';
 import { FeaturesSection } from '@/features/onboarding/components/features-section';
 import { ArrowRight, Loader2, LayoutDashboard } from "lucide-react";
@@ -94,6 +95,8 @@ export function LandingPageClient() {
                         </Button>
                     }
                 />
+
+                {USE_FIREBASE_EMULATORS && !user && <DevEmailLogin />}
 
                 {/* Features Section */}
                 <FeaturesSection />

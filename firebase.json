@@ -17,5 +17,18 @@
   "storage": {
     "rules": "storage.rules",
     "bucket": "studio-6830756272-ca1a2.firebasestorage.app"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
   }
 }

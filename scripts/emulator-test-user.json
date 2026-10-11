@@ -1,0 +1,5 @@
+{
+  "_note": "Local Firebase Auth emulator only (npm run emulators + npm run dev:local). Not a real account.",
+  "email": "claude-test@colater.test",
+  "password": "a7WplA0QKsh2xXip"
+}
