@@ -960,6 +960,8 @@ Data: `users/{uid}/brands/{brandId}/{rounds,directions}` (server-written only), 
 Credits: server-only via `src/lib/server-credits.ts` (idempotent charge keys, refunds). Round = 15, failed direction refunds 5. Legacy pages charge through `spendCredits` in `src/app/actions/credits.ts`.
 Models: `src/ai/logo-models.ts` (Recraft V4.1, GPT Image 1.5, Nano Banana Pro). Jev (`typesafe-ai/jev`) via `AI_GATEWAY_API_KEY` for tag suggestions and font choice.
 Local: `npm run emulators` (needs Java: `PATH="/opt/homebrew/opt/openjdk/bin:$PATH"`) + `npm run dev:local` (port of your choice, builds into `.next-local`); emulator tests `npm run test:emulator`. Test login: `scripts/emulator-test-user.json`.
+Phase 4: each row shows mark, lockup, laptop sticker, app icon, and brand-written typography (free), plus dashed placeholders generated via `generateSlide` (color 5, voice 2, vector 5; mark redo 5; lockup/typography font change free) through `src/ai/studio/request-slide.ts` + `run-slide.ts`. Color = Claude palette + exact browser recolor of the black mark (`src/lib/recolor.ts`); business card and social mockups appear free once a palette exists. Per-slide feedback chips live in `SLIDE_FEEDBACK_CHIPS`. A failed mark redo keeps the old mark (`redoError`). The sweep also refunds slides/redos stuck >10 min.
+Local dev gotcha: start Next with a high file limit (`ulimit -n 10240`). Launched with macOS's default soft limit (256) the dev server runs out of descriptors and outbound AI/fal calls stall until they time out.
 Design: `docs/superpowers/specs/2026-10-11-studio-brand-flow-design.md`; plan: `docs/superpowers/plans/2026-10-11-studio-phases-1-3.md`.
 
 ## Environment Variables
