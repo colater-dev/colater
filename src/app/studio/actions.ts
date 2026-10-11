@@ -24,6 +24,7 @@ import { ROUND_FEEDBACK_CHIPS, SLIDE_FEEDBACK_CHIPS, type GenerateKind } from '@
 import { requestSlide } from '@/ai/studio/request-slide';
 import { runSlide } from '@/ai/studio/run-slide';
 import { choosePalette } from '@/ai/studio/palette-picker';
+import { findStickerBackground } from '@/ai/studio/sticker-background';
 import { generateVoice } from '@/ai/studio/voice';
 import { vectorizeMark } from '@/ai/studio/vectorize-mark';
 
@@ -133,6 +134,7 @@ export async function startRound(
           uploadMark: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
           pickFont,
           choosePalette: args => choosePalette(args),
+          stickerBackground: (surface, owner) => findStickerBackground(surface, owner, { upload: (buffer, contentType, o) => uploadBufferToR2(buffer, contentType, `studio/${o}`) }),
         },
         {
           uid, brandId, roundId: clientRoundId, chargeKey,

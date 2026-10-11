@@ -22,6 +22,7 @@ export interface StudioDirection {
   markUrl?: string;
   fontName?: string;
   paletteName?: string;
+  stickerBg?: { url: string; title: string | null; creator: string | null; license: string; sourceUrl: string | null };
   error?: string;
   picked?: boolean;
   createdAt: FirestoreTimestamp;

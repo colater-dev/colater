@@ -29,6 +29,12 @@ describe('buildDirectionConceptPrompt', () => {
   it('schema requires a type sample with headline and body', () => {
     const base = { idea: 'i', rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' } };
     expect(DirectionConceptSchema.safeParse(base).success).toBe(false);
-    expect(DirectionConceptSchema.safeParse({ ...base, typeSample: { headline: 'Float together', body: 'Swim lessons built around calm.' } }).success).toBe(true);
+    expect(DirectionConceptSchema.safeParse({ ...base, stickerSurface: 'pool tiles', typeSample: { headline: 'Float together', body: 'Swim lessons built around calm.' } }).success).toBe(true);
+  });
+  it('asks for a photo-searchable surface for the sticker slide, and the schema requires it', () => {
+    expect(buildDirectionConceptPrompt(brief)).toContain('sticker');
+    const full = { idea: 'i', rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, typeSample: { headline: 'h', body: 'b' } };
+    expect(DirectionConceptSchema.safeParse(full).success).toBe(false);
+    expect(DirectionConceptSchema.safeParse({ ...full, stickerSurface: 'concrete wall' }).success).toBe(true);
   });
 });

@@ -21,7 +21,9 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
   });
 
   let usedSeen: string[][] = [];
-  async function setup(failModel?: string, existingPalette?: string) {
+  let surfacesSeen: string[] = [];
+  async function setup(failModel?: string, existingPalette?: string, sticker: 'ok' | 'throws' = 'ok') {
+    surfacesSeen = [];
     usedSeen = [];
     const uid = `t_${Math.random().toString(36).slice(2)}`;
     const credits = createServerCredits(db);
@@ -32,10 +34,15 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     if (existingPalette) await db.doc(`${base}/older`).set({ roundId: 'r0', status: 'ready', paletteName: existingPalette });
     const deps: RoundDeps = {
       db, credits,
-      generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, typeSample: { headline: 'h', body: 'b' } }),
+      generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, stickerSurface: 'concrete wall', typeSample: { headline: 'h', body: 'b' } }),
       renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png' }; },
       uploadMark: async () => 'https://r2.example/mark.png',
       pickFont: async () => 'Caprasimo',
+      stickerBackground: async surface => {
+        surfacesSeen.push(surface);
+        if (sticker === 'throws') throw new Error('Openverse 429');
+        return { url: 'https://r2.example/bg.jpg', title: 'Wall', creator: 'Jane', license: 'cc0', sourceUrl: 'https://flickr.com/a' };
+      },
       choosePalette: async ({ used }) => { usedSeen.push([...used]); return { name: used.includes('Misty Morning') ? 'Vinyl Groove' : 'Misty Morning', colors: [{ role: 'primary', hex: '#4A90A4', name: 'Primary' }] as never }; },
     };
     await runRound(deps, { uid, brandId: 'b', roundId: 'r', chargeKey: 'round_x', base: { name: 'N', pitch: 'P', audienceTags: [], styleTags: [] }, directions });
@@ -76,5 +83,19 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     expect(usedSeen[0]).toEqual(['Harbor Fog']);
     expect(usedSeen[1]).toEqual(['Harbor Fog', 'Misty Morning']);
     expect(usedSeen[2]).toEqual(['Harbor Fog', 'Misty Morning', 'Vinyl Groove']);
+  });
+
+  it('saves a royalty-free sticker background found from the concept surface', async () => {
+    const { base } = await setup();
+    expect(surfacesSeen).toEqual(['concrete wall', 'concrete wall', 'concrete wall']);
+    const d = (await db.doc(`${base}/d0`).get()).data()!;
+    expect(d.stickerBg).toEqual({ url: 'https://r2.example/bg.jpg', title: 'Wall', creator: 'Jane', license: 'cc0', sourceUrl: 'https://flickr.com/a' });
+  });
+
+  it('a failed photo search never fails the direction', async () => {
+    const { base } = await setup(undefined, undefined, 'throws');
+    const d = (await db.doc(`${base}/d0`).get()).data()!;
+    expect(d.status).toBe('ready');
+    expect(d.stickerBg).toBeUndefined();
   });
 });

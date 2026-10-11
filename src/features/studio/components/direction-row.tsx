@@ -83,7 +83,7 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
         <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption="In motion">{markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
-        <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>
+        <SlideFrame status={frame} caption={direction.stickerBg && concept?.stickerSurface ? `Sticker · ${concept.stickerSurface}` : concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} backgroundUrl={direction.stickerBg?.url} />}</SlideFrame>
         <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>
         <SlideFrame status={frame} caption="Type hierarchy" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} tagline={voice?.tagline} />}</SlideFrame>
         <SlideFrame status={frame} caption="Variations">{markUrl && <VariationsSlide markUrl={markUrl} palette={palette} />}</SlideFrame>

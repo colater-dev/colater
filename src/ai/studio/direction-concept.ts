@@ -22,6 +22,7 @@ export const DirectionConceptSchema = z.object({
     lockup: z.string().describe('Caption for the mark-with-name slide, 2-6 words.'),
     inUse: z.string().describe('Caption for the in-use slide, 2-6 words.'),
   }),
+  stickerSurface: z.string().describe('1-3 plain words for a stock-photo search: a flat everyday surface in this brand\'s world where its sticker would be stuck, e.g. "concrete wall", "wooden table", "skateboard deck".'),
   typeSample: z.object({
     headline: z.string().describe('A short headline in the brand voice, max 6 words, to show off the typeface. Not the brand name.'),
     body: z.string().describe('One sentence of body copy in the brand voice, max 20 words.'),
@@ -43,6 +44,7 @@ export function buildDirectionConceptPrompt(b: DirectionBrief): string {
   if (b.seedIdea) lines.push(`Explore a variation of this earlier direction: ${b.seedIdea}`);
   lines.push(
     'The mark must work as a solid black mark on a plain white background: flat, no gradients, no text, readable at small sizes.',
+    "Pick a stickerSurface: a common, photographable flat surface from the brand's world for its sticker (generic nouns like \"wooden table\" or \"concrete wall\" find the best photos).",
     "Also write a short type specimen in the brand's voice: a headline (max 6 words, not the brand name) and one body sentence (max 20 words) that this brand would really say.",
     'Keep every caption short and visual. No marketing fluff.'
   );

@@ -4,6 +4,7 @@ import type { ServerCredits } from '@/lib/server-credits';
 import { STUDIO_DIRECTION_REFUND } from '@/lib/credits';
 import type { DirectionBrief, DirectionConcept } from './direction-concept';
 import type { Recipe } from './recipes';
+import type { StickerBackground } from './sticker-background';
 import type { PaletteColor } from '@/features/studio/types';
 
 export interface RoundDeps {
@@ -14,6 +15,7 @@ export interface RoundDeps {
   uploadMark(buffer: Buffer, contentType: string, uid: string): Promise<string>;
   pickFont(state: object): Promise<string>;
   choosePalette(args: { state: object; used: string[] }): Promise<{ name: string; colors: PaletteColor[] }>;
+  stickerBackground(surface: string, uid: string): Promise<StickerBackground | null>;
 }
 
 export interface RoundJob {
@@ -34,15 +36,21 @@ async function runDirection(deps: RoundDeps, job: RoundJob, d: { id: string; rec
     const concept = await deps.generateConcept({ ...job.base, recipe: d.recipe });
     await ref.update({ concept, stage: 'mark', updatedAt: FieldValue.serverTimestamp() });
     const state = { brandName: job.base.name, pitch: job.base.pitch, idea: concept.idea, style: d.recipe.styleLean };
-    const [image, fontName, palette] = await Promise.all([
+    const [image, fontName, palette, stickerBg] = await Promise.all([
       deps.renderMark(d.recipe.model, concept.markPrompt),
       deps.pickFont(state),
       pickPalette(state),
+      // Nice to have: the sticker slide falls back to the laptop photo without it.
+      deps.stickerBackground(concept.stickerSurface, job.uid).catch(error => {
+        console.error(`[studio] sticker background for ${d.id} failed:`, error);
+        return null;
+      }),
     ]);
     const markUrl = await deps.uploadMark(image.buffer, image.contentType, job.uid);
     await ref.update({
       status: 'ready', markUrl, fontName,
       paletteName: palette.name, 'slides.color': { status: 'ready', palette: palette.colors },
+      ...(stickerBg ? { stickerBg } : {}),
       updatedAt: FieldValue.serverTimestamp(),
     });
   } catch (error) {
