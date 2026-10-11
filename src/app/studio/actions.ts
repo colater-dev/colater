@@ -19,7 +19,12 @@ import { uploadBufferToR2 } from '@/lib/r2-server';
 import { runRound } from '@/ai/studio/run-round';
 import { createRound } from '@/ai/studio/create-round';
 import { sweepStaleDirections } from '@/ai/studio/sweep-stale';
-import { ROUND_FEEDBACK_CHIPS } from '@/features/studio/types';
+import { ROUND_FEEDBACK_CHIPS, SLIDE_FEEDBACK_CHIPS, type GenerateKind } from '@/features/studio/types';
+import { requestSlide } from '@/ai/studio/request-slide';
+import { runSlide } from '@/ai/studio/run-slide';
+import { generatePalette } from '@/ai/studio/palette';
+import { generateVoice } from '@/ai/studio/voice';
+import { vectorizeMark } from '@/ai/studio/vectorize-mark';
 
 type Result<T> = { success: boolean; data?: T; error?: string; insufficient?: boolean; needed?: number; balance?: number };
 const fail = (error: unknown): Result<never> => ({ success: false, error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -161,6 +166,59 @@ export async function sweepStudio(idToken: string, brandId: string): Promise<Res
     if (!ID.test(brandId)) return { success: false, error: 'Invalid id' };
     const swept = await sweepStaleDirections(adminDb, createServerCredits(adminDb), { uid, brandId });
     return { success: true, data: { swept } };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+const GENERATE_KINDS: readonly GenerateKind[] = ['color', 'voice', 'vector', 'mark', 'lockup'];
+
+export async function generateSlide(
+  idToken: string,
+  brandId: string,
+  directionId: string,
+  kind: GenerateKind,
+  clientRequestId: string,
+  feedback?: { chips: string[]; note?: string }
+): Promise<Result<{ directionId: string }>> {
+  try {
+    const { uid } = await requireServerAuth(idToken);
+    if (!ID.test(brandId) || !ID.test(directionId) || !ID.test(clientRequestId)) return { success: false, error: 'Invalid id' };
+    if (!GENERATE_KINDS.includes(kind)) return { success: false, error: 'Unknown slide' };
+    const allowedChips: readonly string[] = (SLIDE_FEEDBACK_CHIPS as Record<string, readonly string[]>)[kind] ?? [];
+    const cleanFeedback = feedback
+      ? { chips: feedback.chips.filter(c => allowedChips.includes(c)), note: feedback.note?.trim().slice(0, 200) || undefined }
+      : undefined;
+
+    const brand = (await adminDb.doc(`users/${uid}/brands/${brandId}`).get()).data();
+    if (!brand) return { success: false, error: 'Brand not found' };
+
+    const credits = createServerCredits(adminDb);
+    let req;
+    try {
+      req = await requestSlide(adminDb, credits, { uid, brandId, directionId, kind, clientRequestId, feedback: cleanFeedback });
+    } catch (error) {
+      if (error instanceof InsufficientCreditsError) {
+        return { success: false, insufficient: true, needed: error.needed, balance: error.balance, error: `This needs ${error.needed} credits; you have ${error.balance}.` };
+      }
+      throw error;
+    }
+    if (req.status === 'duplicate') return { success: true, data: { directionId } };
+
+    after(() =>
+      runSlide(
+        {
+          db: adminDb, credits, generatePalette, generateVoice, vectorizeMark,
+          upload: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
+          generateConcept: generateDirectionConcept, renderMark, pickFont,
+        },
+        {
+          uid, brandId, directionId, kind, chargeKey: req.chargeKey, cost: req.cost, feedback: cleanFeedback,
+          brief: { name: brand.latestName, pitch: brand.latestElevatorPitch, audienceTags: brand.audienceTags ?? [], styleTags: brand.styleTags ?? [] },
+        }
+      )
+    );
+    return { success: true, data: { directionId } };
   } catch (error) {
     return fail(error);
   }
