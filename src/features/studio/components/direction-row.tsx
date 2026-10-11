@@ -11,6 +11,8 @@ import { LockupSlide } from './slides/lockup-slide';
 import { StickerSlide } from './slides/sticker-slide';
 import { AppIconSlide } from './slides/app-icon-slide';
 import { TypographySlide } from './slides/typography-slide';
+import { MotionSlide } from './slides/motion-slide';
+import { VariationsSlide } from './slides/variations-slide';
 import { ColorSlide } from './slides/color-slide';
 import { BusinessCardSlide } from './slides/business-card-slide';
 import { SocialSlide } from './slides/social-slide';
@@ -79,9 +81,11 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
       <div className="flex gap-4 overflow-x-auto pb-2">
         <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
+        <SlideFrame status={frame} caption="In motion">{markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>
         <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>
-        <SlideFrame status={frame} caption="Typography" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} />}</SlideFrame>
+        <SlideFrame status={frame} caption="Type hierarchy" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} tagline={voice?.tagline} />}</SlideFrame>
+        <SlideFrame status={frame} caption="Variations">{markUrl && <VariationsSlide markUrl={markUrl} palette={palette} />}</SlideFrame>
         {ready && palette && <SlideFrame status="ready" caption="Color" overlay={fb('color')}><ColorSlide markUrl={markUrl!} palette={palette} /></SlideFrame>}
         {ready && palette && <SlideFrame status="ready" caption="Business card"><BusinessCardSlide markUrl={markUrl!} palette={palette} name={brandName} fontName={fontName} /></SlideFrame>}
         {ready && palette && <SlideFrame status="ready" caption="Social profile"><SocialSlide markUrl={markUrl!} palette={palette} name={brandName} tagline={voice?.tagline} /></SlideFrame>}
