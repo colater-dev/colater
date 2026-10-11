@@ -20,19 +20,23 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     db = getFirestore(app);
   });
 
-  async function setup(failModel?: string) {
+  let usedSeen: string[][] = [];
+  async function setup(failModel?: string, existingPalette?: string) {
+    usedSeen = [];
     const uid = `t_${Math.random().toString(36).slice(2)}`;
     const credits = createServerCredits(db);
     await credits.charge({ uid, amount: 15, action: 'studioRound', key: 'round_x' });
     const base = `users/${uid}/brands/b/directions`;
     const directions = recipes.map((recipe, i) => ({ id: `d${i}`, recipe }));
     for (const d of directions) await db.doc(`${base}/${d.id}`).set({ roundId: 'r', recipe: d.recipe, status: 'pending' });
+    if (existingPalette) await db.doc(`${base}/older`).set({ roundId: 'r0', status: 'ready', paletteName: existingPalette });
     const deps: RoundDeps = {
       db, credits,
       generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, typeSample: { headline: 'h', body: 'b' } }),
       renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png' }; },
       uploadMark: async () => 'https://r2.example/mark.png',
       pickFont: async () => 'Caprasimo',
+      choosePalette: async ({ used }) => { usedSeen.push([...used]); return { name: used.includes('Misty Morning') ? 'Vinyl Groove' : 'Misty Morning', colors: [{ role: 'primary', hex: '#4A90A4', name: 'Primary' }] as never }; },
     };
     await runRound(deps, { uid, brandId: 'b', roundId: 'r', chargeKey: 'round_x', base: { name: 'N', pitch: 'P', audienceTags: [], styleTags: [] }, directions });
     return { uid, base };
@@ -59,5 +63,18 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     expect(failed.error).toContain('Application not found');
     expect((await db.doc(`${base}/d2`).get()).data()?.status).toBe('ready');
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 10);
+  });
+
+  it('gives every direction a palette, passing names already used on the page', async () => {
+    const { base } = await setup(undefined, 'Harbor Fog');
+    for (const i of [0, 1, 2]) {
+      const d = (await db.doc(`${base}/d${i}`).get()).data()!;
+      expect(d.slides.color.status).toBe('ready');
+      expect(d.slides.color.palette[0].hex).toBe('#4A90A4');
+      expect(['Misty Morning', 'Vinyl Groove']).toContain(d.paletteName);
+    }
+    expect(usedSeen[0]).toEqual(['Harbor Fog']);
+    expect(usedSeen[1]).toEqual(['Harbor Fog', 'Misty Morning']);
+    expect(usedSeen[2]).toEqual(['Harbor Fog', 'Misty Morning', 'Vinyl Groove']);
   });
 });

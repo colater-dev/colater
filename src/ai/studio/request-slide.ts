@@ -4,7 +4,7 @@ import type { CreditAction } from '@/lib/credits';
 import { GENERATE_COSTS, type GenerateKind } from '@/features/studio/types';
 
 const ACTIONS: Record<GenerateKind, CreditAction | null> = {
-  color: 'studioColor', voice: 'studioVoice', vector: 'studioVector', mark: 'studioMarkRedo', lockup: null,
+  color: null, voice: 'studioVoice', vector: 'studioVector', mark: 'studioMarkRedo', lockup: null,
 };
 
 export async function requestSlide(
@@ -34,6 +34,8 @@ export async function requestSlide(
   const pending =
     a.kind === 'mark' ? { status: 'generating', stage: 'concept', redoChargeKey: chargeKey, redoCost: cost, redoRequestedAt: FieldValue.serverTimestamp() }
     : a.kind === 'lockup' ? {}
+    // A palette re-pick keeps the current colors on screen until the new ones land.
+    : a.kind === 'color' ? { 'slides.color.status': 'pending', 'slides.color.error': FieldValue.delete(), 'slides.color.requestedAt': FieldValue.serverTimestamp() }
     : { [`slides.${a.kind}`]: { status: 'pending', chargeKey, cost, requestedAt: FieldValue.serverTimestamp() } };
   const feedbackEntry = a.feedback && (a.feedback.chips.length || a.feedback.note)
     ? { feedback: FieldValue.arrayUnion({ slideKind: a.kind, chips: a.feedback.chips, note: a.feedback.note ?? null, at: new Date().toISOString() }) }

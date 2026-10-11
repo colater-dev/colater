@@ -21,11 +21,11 @@ describe.skipIf(!ON)('requestSlide (emulator)', () => {
 
   it('same request id charges once and schedules once', async () => {
     const { uid, credits } = await setup();
-    const a = { uid, brandId: 'b', directionId: 'd', kind: 'color' as const, clientRequestId: 'req12345' };
+    const a = { uid, brandId: 'b', directionId: 'd', kind: 'vector' as const, clientRequestId: 'req12345' };
     const [r1, r2] = await Promise.all([requestSlide(db, credits, a), requestSlide(db, credits, a)]);
     expect([r1.status, r2.status].sort()).toEqual(['duplicate', 'scheduled']);
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 5);
-    const slide = (await db.doc(`users/${uid}/brands/b/directions/d`).get()).data()!.slides.color;
+    const slide = (await db.doc(`users/${uid}/brands/b/directions/d`).get()).data()!.slides.vector;
     expect(slide.status).toBe('pending');
     expect(slide.chargeKey).toBe('slide_d_req12345');
     expect(slide.cost).toBe(5);
@@ -58,9 +58,9 @@ describe.skipIf(!ON)('requestSlide (emulator)', () => {
 
   it('refuses a second paid request while the same slide is pending (no extra charge)', async () => {
     const { uid, credits } = await setup();
-    await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqAAAAAA' });
-    await expect(requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqBBBBBB' })).rejects.toThrow('Already generating');
-    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 5);
+    await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'voice', clientRequestId: 'reqAAAAAA' });
+    await expect(requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'voice', clientRequestId: 'reqBBBBBB' })).rejects.toThrow('Already generating');
+    expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS - 2);
   });
 
   it('refuses a mark redo while any slide is pending, and paid slides while the mark is regenerating', async () => {
@@ -81,5 +81,20 @@ describe.skipIf(!ON)('requestSlide (emulator)', () => {
     } };
     await expect(requestSlide(db, deletingCredits, { uid, brandId: 'b', directionId: 'd', kind: 'voice', clientRequestId: 'reqFFFFFF' })).rejects.toThrow();
     expect((await db.doc(`userProfiles/${uid}`).get()).data()?.balance).toBe(INITIAL_CREDITS);
+  });
+
+  it('color re-pick is free', async () => {
+    const { uid, credits } = await setup();
+    const r = await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqGGGGGG', feedback: { chips: ['warmer'] } });
+    expect(r).toEqual({ status: 'scheduled', chargeKey: null, cost: 0 });
+  });
+
+  it('color re-pick keeps the current palette visible while pending', async () => {
+    const palette = [{ role: 'primary', hex: '#112233', name: 'Primary' }];
+    const { uid, credits } = await setup({ status: 'ready', markUrl: 'https://x/m.png', slides: { color: { status: 'ready', palette } } });
+    await requestSlide(db, credits, { uid, brandId: 'b', directionId: 'd', kind: 'color', clientRequestId: 'reqHHHHHH' });
+    const color = (await db.doc(`users/${uid}/brands/b/directions/d`).get()).data()!.slides.color;
+    expect(color.status).toBe('pending');
+    expect(color.palette).toEqual(palette);
   });
 });

@@ -21,6 +21,7 @@ export interface StudioDirection {
   concept?: DirectionConcept;
   markUrl?: string;
   fontName?: string;
+  paletteName?: string;
   error?: string;
   picked?: boolean;
   createdAt: FirestoreTimestamp;
@@ -66,7 +67,7 @@ export const SLIDE_FEEDBACK_CHIPS: Record<FeedbackSlideKind, readonly string[]> 
 };
 
 export const GENERATE_COSTS: Record<GenerateKind, number> = {
-  color: CREDIT_COSTS.studioColor,
+  color: 0, // re-picked from the palette library
   voice: CREDIT_COSTS.studioVoice,
   vector: CREDIT_COSTS.studioVector,
   mark: CREDIT_COSTS.studioMarkRedo,

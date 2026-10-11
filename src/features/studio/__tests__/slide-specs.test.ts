@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { variationTiles, typeLevels } from '../slide-specs';
+import { variationTiles, typeLevels, markSlideColors } from '../slide-specs';
+import type { PaletteColor } from '../types';
 
 const p = (role: string, hex: string) => ({ role, hex, name: role }) as never;
 const palette = [p('primary', '#1144AA'), p('secondary', '#22AA66'), p('accent', '#FFAA00'), p('background', '#F7F7F2'), p('ink', '#111111')];
@@ -34,5 +35,19 @@ describe('typeLevels', () => {
     const l = typeLevels({ name: 'Tidepool', fontName: 'Archivo' });
     expect(l[0].text).toBe('Tidepool');
     expect(l.map(x => x.role)).toEqual(['Display', 'Caption']);
+  });
+});
+
+describe('markSlideColors', () => {
+  it('puts the mark in primary and the name in ink on the palette background', () => {
+    const p: PaletteColor[] = [
+      { role: 'primary', hex: '#2244AA', name: 'Primary' },
+      { role: 'background', hex: '#F7F1E8', name: 'Background' },
+      { role: 'ink', hex: '#1A1A1A', name: 'Ink' },
+    ];
+    expect(markSlideColors(p)).toEqual({ background: '#F7F1E8', mark: '#2244AA', text: '#1A1A1A' });
+  });
+  it('falls back to black on white without a palette', () => {
+    expect(markSlideColors(undefined)).toEqual({ background: '#FFFFFF', mark: undefined, text: '#000000' });
   });
 });

@@ -23,7 +23,7 @@ import { sweepStaleDirections } from '@/ai/studio/sweep-stale';
 import { ROUND_FEEDBACK_CHIPS, SLIDE_FEEDBACK_CHIPS, type GenerateKind } from '@/features/studio/types';
 import { requestSlide } from '@/ai/studio/request-slide';
 import { runSlide } from '@/ai/studio/run-slide';
-import { generatePalette } from '@/ai/studio/palette';
+import { choosePalette } from '@/ai/studio/palette-picker';
 import { generateVoice } from '@/ai/studio/voice';
 import { vectorizeMark } from '@/ai/studio/vectorize-mark';
 
@@ -132,6 +132,7 @@ export async function startRound(
           renderMark,
           uploadMark: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
           pickFont,
+          choosePalette: args => choosePalette(args),
         },
         {
           uid, brandId, roundId: clientRoundId, chargeKey,
@@ -206,7 +207,7 @@ export async function generateSlide(
     after(() =>
       runSlide(
         {
-          db: adminDb, credits, generatePalette, generateVoice, vectorizeMark,
+          db: adminDb, credits, choosePalette: args => choosePalette(args), generateVoice, vectorizeMark,
           upload: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
           generateConcept: generateDirectionConcept, renderMark, pickFont,
         },

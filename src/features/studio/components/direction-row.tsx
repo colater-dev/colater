@@ -21,8 +21,7 @@ import { VectorSlide } from './slides/vector-slide';
 import { stageLabel } from '../stage-label';
 import { GENERATE_COSTS, type GenerateKind, type PaidSlideKind, type StudioDirection } from '../types';
 
-const PAID: { kind: PaidSlideKind; label: string }[] = [
-  { kind: 'color', label: 'Color palette' },
+const PAID: { kind: Exclude<PaidSlideKind, 'color'>; label: string }[] = [
   { kind: 'voice', label: 'Voice' },
   { kind: 'vector', label: 'Vector file' },
 ];
@@ -39,7 +38,9 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
   const ready = status === 'ready' && !!markUrl;
   const frame = ready ? 'ready' : 'loading';
   const progress = stageLabel(direction);
-  const palette = slides.color?.status === 'ready' ? slides.color.palette : undefined;
+  // Palettes are picked with the mark; a re-pick keeps the old colors on screen until the new ones land.
+  const palette = slides.color?.palette;
+  const colorPending = slides.color?.status === 'pending' || busy('color');
   const voice = slides.voice?.status === 'ready' ? slides.voice : undefined;
   const fb = (kind: 'mark' | 'lockup' | 'color' | 'voice') => <SlideFeedback kind={kind} onApply={f => onGenerate(kind, f)} />;
 
@@ -79,14 +80,14 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
         )}
       </div>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} />}</SlideFrame>
-        <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} />}</SlideFrame>
+        <SlideFrame status={frame} caption={concept?.captions.mark} overlay={fb('mark')}>{markUrl && <MarkSlide markUrl={markUrl} palette={palette} />}</SlideFrame>
+        <SlideFrame status={frame} caption={concept?.captions.lockup} overlay={fb('lockup')}>{markUrl && <LockupSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption="In motion">{markUrl && <MotionSlide markUrl={markUrl} name={brandName} fontName={fontName} palette={palette} />}</SlideFrame>
         <SlideFrame status={frame} caption={concept?.captions.inUse ?? 'On a laptop'}>{markUrl && <StickerSlide markUrl={markUrl} />}</SlideFrame>
         <SlideFrame status={frame} caption="App icon">{markUrl && <AppIconSlide markUrl={markUrl} name={brandName} color={palette?.find(p => p.role === 'primary')?.hex} />}</SlideFrame>
         <SlideFrame status={frame} caption="Type hierarchy" overlay={fb('lockup')}>{markUrl && <TypographySlide name={brandName} fontName={fontName} sample={concept?.typeSample} tagline={voice?.tagline} />}</SlideFrame>
         <SlideFrame status={frame} caption="Variations">{markUrl && <VariationsSlide markUrl={markUrl} palette={palette} />}</SlideFrame>
-        {ready && palette && <SlideFrame status="ready" caption="Color" overlay={fb('color')}><ColorSlide markUrl={markUrl!} palette={palette} /></SlideFrame>}
+        {ready && palette && <SlideFrame status={colorPending ? 'loading' : 'ready'} caption="Color" overlay={fb('color')}><ColorSlide markUrl={markUrl!} palette={palette} /></SlideFrame>}
         {ready && palette && <SlideFrame status="ready" caption="Business card"><BusinessCardSlide markUrl={markUrl!} palette={palette} name={brandName} fontName={fontName} /></SlideFrame>}
         {ready && palette && <SlideFrame status="ready" caption="Social profile"><SocialSlide markUrl={markUrl!} palette={palette} name={brandName} tagline={voice?.tagline} /></SlideFrame>}
         {ready && voice && <SlideFrame status="ready" caption="Voice" overlay={fb('voice')}><VoiceSlide tagline={voice.tagline!} story={voice.story!} palette={palette} /></SlideFrame>}

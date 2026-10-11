@@ -20,7 +20,7 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
     const credits = createServerCredits(db);
     const ref = db.doc(`users/${uid}/brands/b/directions/d`);
     await ref.set({
-      roundId: 'r', status: 'ready', markUrl: 'https://r2.example/old.png', fontName: 'Caprasimo',
+      roundId: 'r', status: 'ready', markUrl: 'https://r2.example/old.png', fontName: 'Caprasimo', paletteName: 'Misty Morning',
       recipe: { ideaType: 'lettermark', styleLean: 'bold', model: 'recraft' },
       concept: { idea: 'An idea', rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' } },
       slides: { vector: { status: 'ready', svgUrl: 'https://r2.example/old.svg' } },
@@ -28,7 +28,7 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
     });
     const deps: SlideDeps = {
       db, credits,
-      generatePalette: async () => palette,
+      choosePalette: async ({ exclude }) => ({ name: exclude?.includes('Misty Morning') ? 'Vinyl Groove' : 'Misty Morning', colors: palette }),
       generateVoice: async () => ({ tagline: 'Float together', story: 'Swimming made calm.' }),
       vectorizeMark: async () => ({ buffer: Buffer.from('<svg/>'), contentType: 'image/svg+xml' }),
       upload: async (_b, ct) => (ct.includes('svg') ? 'https://r2.example/new.svg' : 'https://r2.example/new.png'),
@@ -41,13 +41,13 @@ describe.skipIf(!ON)('runSlide (emulator)', () => {
     return { uid, credits, ref, deps, base };
   }
 
-  it('color writes a ready palette', async () => {
-    const { uid, credits, ref, deps, base } = await setup();
-    await credits.charge({ uid, amount: 5, action: 'studioColor', key: 'k1' });
-    await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'color', chargeKey: 'k1', cost: 5, brief: base });
+  it('color feedback re-picks a different library palette for free', async () => {
+    const { uid, ref, deps, base } = await setup();
+    await runSlide(deps, { uid, brandId: 'b', directionId: 'd', kind: 'color', chargeKey: null, cost: 0, brief: base, feedback: { chips: ['warmer'] } });
     const d = (await ref.get()).data()!;
     expect(d.slides.color.status).toBe('ready');
     expect(d.slides.color.palette).toHaveLength(5);
+    expect(d.paletteName).toBe('Vinyl Groove');
   });
 
   it('failed vector refunds its cost and leaves other slides alone', async () => {

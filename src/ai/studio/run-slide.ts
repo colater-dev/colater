@@ -8,7 +8,7 @@ import type { SlideBrief } from './palette';
 export interface SlideDeps {
   db: Firestore;
   credits: ServerCredits;
-  generatePalette(b: SlideBrief): Promise<PaletteColor[]>;
+  choosePalette(args: { state: object; used: string[]; exclude?: string[] }): Promise<{ name: string; colors: PaletteColor[] }>;
   generateVoice(b: SlideBrief): Promise<{ tagline: string; story: string }>;
   vectorizeMark(url: string): Promise<{ buffer: Buffer; contentType: string }>;
   upload(buffer: Buffer, contentType: string, uid: string): Promise<string>;
@@ -40,8 +40,11 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
 
     switch (job.kind) {
       case 'color': {
-        const palette = await deps.generatePalette(slideBrief);
-        await ref.update({ 'slides.color': { status: 'ready', palette }, updatedAt: now() });
+        const others = await ref.parent.where('paletteName', '!=', null).get();
+        const used = others.docs.filter(x => x.id !== job.directionId).map(x => x.data().paletteName as string);
+        const state = { brandName: job.brief.name, pitch: job.brief.pitch, idea: slideBrief.idea, style: job.brief.styleTags, feedback: [...(job.feedback?.chips ?? []), ...(job.feedback?.note ? [job.feedback.note] : [])] };
+        const picked = await deps.choosePalette({ state, used, exclude: d.paletteName ? [d.paletteName] : [] });
+        await ref.update({ paletteName: picked.name, 'slides.color': { status: 'ready', palette: picked.colors }, updatedAt: now() });
         return;
       }
       case 'voice': {

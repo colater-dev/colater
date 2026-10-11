@@ -42,3 +42,9 @@ export function typeLevels({ name, sample, tagline, fontName }: {
   levels.push({ role: 'Caption', text: `${fontName} · Geist Sans` });
   return levels;
 }
+
+/** Colors for the mark and lockup slides: mark in primary, name in ink, on the palette background. */
+export function markSlideColors(palette: PaletteColor[] | undefined): { background: string; mark?: string; text: string } {
+  const hex = (role: PaletteColor['role']) => palette?.find(c => c.role === role)?.hex;
+  return { background: hex('background') ?? '#FFFFFF', mark: hex('primary'), text: hex('ink') ?? '#000000' };
+}
