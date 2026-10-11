@@ -52,7 +52,7 @@ Undesirable Visual Cues: {{{undesirableCues}}}
 1. Logo Concept (2-3 sentences)
 
 Describe a focused, highly visual concept by specifying:
-- Start with "Design a plain white icon on a black background"...
+- Start with "Design a solid black icon on a plain white background"...
 - A primary metaphor (plus optional secondary) that translates directly into shapes.
 - The exact visual logic of the mark (e.g., two interlocking arcs, three modular bars forming a rotational hub, a continuous folded loop).
 - The structure of the silhouette (symmetry, roundedness, center-weight, negative-space treatment, line weight, and edge behavior).

@@ -140,7 +140,7 @@ export function LogoDetailClient() {
                         isCritiquing={false}
                         onLogoFontChange={() => { }}
                         readOnly={true}
-                        selectedProvider="ideogram"
+                        selectedProvider="recraft"
                         setSelectedProvider={() => { }}
                     />
 

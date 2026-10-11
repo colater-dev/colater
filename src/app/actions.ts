@@ -4,8 +4,8 @@
 import { generateTaglines } from "@/ai/flows/generate-tagline";
 import { generateBrandDetails, type GenerateBrandDetailsOutput } from "@/ai/flows/generate-brand-details";
 import { colorizeLogo, ColorizeLogoInput } from "@/ai/flows/colorize-logo";
-import { generateLogoOpenAI } from "@/ai/flows/generate-logo-openai";
 import { generateLogoFal } from "@/ai/flows/generate-logo-fal";
+import { isLogoProvider, type LogoProvider } from "@/ai/logo-models";
 import { completeBrandDetails, type CompleteBrandDetailsOutput } from "@/ai/flows/complete-brand-details";
 import { generateLogoConcept } from "@/ai/flows/generate-logo-concept";
 import { critiqueLogo, CritiqueLogoInput, Critique } from "@/ai/flows/critique-logo";
@@ -45,75 +45,6 @@ export async function getTaglineSuggestions(
   }
 }
 
-export async function getLogoSuggestion(
-  idToken: string,
-  name: string,
-  elevatorPitch: string,
-  audience: string,
-  desirableCues: string,
-  undesirableCues: string,
-  concept?: string,
-): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
-  try {
-    await requireServerAuth(idToken);
-    if (!name || !elevatorPitch || !audience) {
-      console.error("getLogoSuggestion: Missing brand details.");
-      return { success: false, error: "Brand details are required." };
-    }
-
-    const result = await generateLogoFal({ name, elevatorPitch, audience, desirableCues, undesirableCues, concept });
-
-    if (!result || !result.logoUrl) {
-      console.error("getLogoSuggestion: AI did not return a logoUrl.");
-      throw new Error("AI image generation failed to return a result.");
-    }
-
-    // Return the data URI directly - upload will happen on client side
-    return { success: true, data: { logoUrl: result.logoUrl, prompt: result.prompt } };
-  } catch (error) {
-    console.error("Error in getLogoSuggestion action:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    return {
-      success: false,
-      error: `An unexpected error occurred while generating a logo: ${errorMessage}`,
-    };
-  }
-}
-
-export async function getLogoSuggestionOpenAI(
-  idToken: string,
-  name: string,
-  elevatorPitch: string,
-  audience: string,
-  desirableCues: string,
-  undesirableCues: string,
-  options?: { size?: '512x512' | '768x768' | '1024x1024'; concept?: string }
-): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
-  try {
-    await requireServerAuth(idToken);
-    if (!name || !elevatorPitch || !audience) {
-      return { success: false, error: "Brand details are required." };
-    }
-    const result = await generateLogoOpenAI({
-      name,
-      elevatorPitch,
-      audience,
-      desirableCues,
-      undesirableCues,
-      size: options?.size,
-      concept: options?.concept,
-    });
-    if (!result || !result.logoUrl) {
-      throw new Error("OpenAI image generation failed to return a result.");
-    }
-    return { success: true, data: { logoUrl: result.logoUrl, prompt: result.prompt } };
-  } catch (error) {
-    console.error("Error in getLogoSuggestionOpenAI action:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    return { success: false, error: `An unexpected error occurred while generating a logo (OpenAI): ${errorMessage}` };
-  }
-}
-
 export async function getLogoSuggestionFal(
   idToken: string,
   name: string,
@@ -121,13 +52,16 @@ export async function getLogoSuggestionFal(
   audience: string,
   desirableCues: string,
   undesirableCues: string,
-  concept?: string,
-  model?: string,
+  concept: string | undefined,
+  provider: LogoProvider,
 ): Promise<{ success: boolean; data?: { logoUrl: string; prompt: string }; error?: string }> {
   try {
     await requireServerAuth(idToken);
     if (!name || !elevatorPitch || !audience) {
       return { success: false, error: "Brand details are required." };
+    }
+    if (!isLogoProvider(provider)) {
+      return { success: false, error: "Unknown logo provider." };
     }
     const result = await generateLogoFal({
       name,
@@ -136,7 +70,7 @@ export async function getLogoSuggestionFal(
       desirableCues,
       undesirableCues,
       concept,
-      model,
+      provider,
     });
     if (!result || !result.logoUrl) {
       throw new Error("Fal image generation failed to return a result.");

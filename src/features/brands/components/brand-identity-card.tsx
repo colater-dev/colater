@@ -16,6 +16,7 @@ import { BrandIdentityHeader } from './brand-identity-header';
 import { LogoShowcase } from './logo-showcase';
 import { LogoNavigationDock } from './logo-navigation-dock';
 import { useToast } from '@/hooks/use-toast';
+import type { LogoProvider } from '@/ai/logo-models';
 
 interface BrandIdentityCardProps {
   brandId: string;
@@ -31,7 +32,7 @@ interface BrandIdentityCardProps {
   logoConcept: string | null;
   onGenerateConcept: () => void;
   onConceptChange: (concept: string) => void;
-  onGenerateLogo: (provider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana') => void;
+  onGenerateLogo: (provider: LogoProvider) => void;
   onColorizeLogo: () => void;
   onLogoIndexChange: (index: number) => void;
   onCritiqueLogo: () => void;
@@ -40,8 +41,8 @@ interface BrandIdentityCardProps {
   onSaveDisplaySettings?: (logoId: string, settings: Logo['displaySettings']) => void;
   onMakeLogoPublic?: (logoId: string) => Promise<void>;
   readOnly?: boolean;
-  selectedProvider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana';
-  setSelectedProvider: (provider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana') => void;
+  selectedProvider: LogoProvider;
+  setSelectedProvider: (provider: LogoProvider) => void;
   onSaveExternalMedia?: (logoId: string, url: string) => void;
   onDeleteColorVersion?: (index: number) => void;
   onVectorizeLogo?: (croppedLogoUrl: string) => void;

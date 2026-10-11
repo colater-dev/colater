@@ -22,6 +22,7 @@ import {
 import { Loader2, MessageSquare, Share2, Trash2, Presentation, Settings } from 'lucide-react';
 import type { Logo } from '@/lib/types';
 import { useState } from 'react';
+import { LOGO_MODELS, type LogoProvider } from '@/ai/logo-models';
 
 interface BrandIdentityHeaderProps {
   brandId: string;
@@ -29,10 +30,10 @@ interface BrandIdentityHeaderProps {
   onGenerateConcept: () => void;
   logoConcept: string | null;
   onConceptChange: (concept: string) => void;
-  selectedProvider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana';
-  setSelectedProvider: (provider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana') => void;
+  selectedProvider: LogoProvider;
+  setSelectedProvider: (provider: LogoProvider) => void;
   isGeneratingLogo: boolean;
-  onGenerateLogo: (provider: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana') => void;
+  onGenerateLogo: (provider: LogoProvider) => void;
   showCritique: boolean;
   setShowCritique: (show: boolean) => void;
   isCritiquing: boolean;
@@ -79,16 +80,14 @@ export function BrandIdentityHeader({
         </Button>
         {logoConcept && (
           <>
-            <Select value={selectedProvider} onValueChange={(value: 'gemini' | 'openai' | 'ideogram' | 'reve' | 'nano-banana') => setSelectedProvider(value)}>
+            <Select value={selectedProvider} onValueChange={(value: LogoProvider) => setSelectedProvider(value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="nano-banana">Nano Banana Pro</SelectItem>
-                <SelectItem value="ideogram">Ideogram v3</SelectItem>
-                <SelectItem value="reve">Reve</SelectItem>
-                <SelectItem value="gemini">Gemini</SelectItem>
-                <SelectItem value="openai">OpenAI</SelectItem>
+                {(Object.keys(LOGO_MODELS) as LogoProvider[]).map((key) => (
+                  <SelectItem key={key} value={key}>{LOGO_MODELS[key].label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button

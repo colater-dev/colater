@@ -4,6 +4,7 @@ import { fal } from "@fal-ai/client";
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 import { Buffer } from 'buffer';
+import { LOGO_MODELS, DEFAULT_LOGO_PROVIDER, buildLogoModelInput, isLogoProvider } from '@/ai/logo-models';
 
 const FalGenerateLogoInputSchema = z.object({
     name: z.string(),
@@ -13,7 +14,7 @@ const FalGenerateLogoInputSchema = z.object({
     undesirableCues: z.string().optional(),
     promptName: z.string().optional(),
     concept: z.string().optional(), // Optional logo concept from generate-logo-concept
-    model: z.string().optional(), // Optional model ID
+    provider: z.string().refine(isLogoProvider, 'Unknown logo provider').optional(),
 });
 export type FalGenerateLogoInput = z.infer<typeof FalGenerateLogoInputSchema>;
 
@@ -61,7 +62,7 @@ export async function generateLogoFal(
         }
     } else {
         // Fallback: Generate brand-specific style prompt using genkit
-        const stylePromptPrompt = `You are an expert brand designer. Based on the following brand information, describe the logo concept and create a detailed stylePrompt that can be used for ideogram image generation.
+        const stylePromptPrompt = `You are an expert brand designer. Based on the following brand information, describe the logo concept and create a detailed stylePrompt that can be used for image generation.
 
 Brand Name: ${cleanName}
 Elevator Pitch: ${cleanPitch}
@@ -70,7 +71,7 @@ ${cleanDesirableCues ? `Desirable Visual Cues: ${cleanDesirableCues}` : ''}
 ${cleanUndesirableCues ? `Undesirable Visual Cues: ${cleanUndesirableCues}` : ''}
 
 Describe the logo concept as a brand designer would, focusing on:
-- Simple white logo on plain black background
+- Solid black logo mark on a plain white background
 - Visual style and aesthetic appropriate for the brand
 - Each logo compresses a concept into a single, graspable form
 - Symbolic elements to use - abstract enough to feel timeless, concrete enough to feel intentional
@@ -103,28 +104,9 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         console.warn(`[generate-logo-fal] Prompt truncated from ${originalPromptLength} to ${fullPrompt.length} characters`);
     }
 
-    const modelId = parsed.model || "fal-ai/ideogram/v3";
-
-    // Prepare input based on model
-    const modelInput: Record<string, string | Record<string, number>> = {
-        prompt: fullPrompt,
-    };
-
-    if (modelId === "fal-ai/ideogram/v3") {
-        modelInput.image_size = {
-            width: 720,
-            height: 720
-        };
-    } else if (modelId === "fal-ai/nano-banana-pro") {
-        modelInput.aspect_ratio = "1:1";
-        modelInput.output_format = "png";
-    } else if (modelId === "fal-ai/reve/text-to-image") {
-        modelInput.aspect_ratio = "1:1";
-        modelInput.output_format = "png";
-    } else {
-        // Default fallback for unknown models (assume aspect_ratio support)
-        modelInput.aspect_ratio = "1:1";
-    }
+    const provider = parsed.provider && isLogoProvider(parsed.provider) ? parsed.provider : DEFAULT_LOGO_PROVIDER;
+    const modelId = LOGO_MODELS[provider].endpointId;
+    const modelInput = buildLogoModelInput(provider, fullPrompt);
 
     try {
         const result = await fal.subscribe(modelId, {
@@ -150,7 +132,7 @@ Then, return ONLY a concise Prompt (4-5 sentences) that can be directly used for
         const base64 = Buffer.from(buffer).toString('base64');
         const dataUri = `data:${contentType};base64,${base64}`;
 
-        return { logoUrl: dataUri, prompt: fullPrompt };
+        return { logoUrl: dataUri, prompt: String(modelInput.prompt) };
     } catch (error: unknown) {
         console.error('[generate-logo-fal] Error:', error);
         const err = error as { body?: unknown; message?: string };
