@@ -5,13 +5,14 @@ import { STUDIO_DIRECTION_REFUND } from '@/lib/credits';
 import type { DirectionBrief, DirectionConcept } from './direction-concept';
 import type { Recipe } from './recipes';
 import type { StickerBackground } from './sticker-background';
+import type { MarkQa } from './mark-qa';
 import type { PaletteColor } from '@/features/studio/types';
 
 export interface RoundDeps {
   db: Firestore;
   credits: ServerCredits;
   generateConcept(brief: DirectionBrief): Promise<DirectionConcept>;
-  renderMark(provider: LogoProvider, prompt: string): Promise<{ buffer: Buffer; contentType: string }>;
+  renderMark(provider: LogoProvider, prompt: string): Promise<{ buffer: Buffer; contentType: string; qa?: MarkQa }>;
   uploadMark(buffer: Buffer, contentType: string, uid: string): Promise<string>;
   pickFont(state: object): Promise<string>;
   choosePalette(args: { state: object; used: string[] }): Promise<{ name: string; colors: PaletteColor[] }>;
@@ -49,6 +50,7 @@ async function runDirection(deps: RoundDeps, job: RoundJob, d: { id: string; rec
     const markUrl = await deps.uploadMark(image.buffer, image.contentType, job.uid);
     await ref.update({
       status: 'ready', markUrl, fontName,
+      ...(image.qa ? { markQa: image.qa } : {}),
       paletteName: palette.name, 'slides.color': { status: 'ready', palette: palette.colors },
       ...(stickerBg ? { stickerBg } : {}),
       updatedAt: FieldValue.serverTimestamp(),

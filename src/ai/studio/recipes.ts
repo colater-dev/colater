@@ -1,13 +1,16 @@
 import { LOGO_MODELS, type LogoProvider } from '@/ai/logo-models';
 
-export const IDEA_TYPES = ['literal-symbol', 'abstract-geometric', 'lettermark', 'negative-space'] as const;
+export const IDEA_TYPES = ['literal-symbol', 'abstract-geometric', 'lettermark', 'negative-space', 'monoline', 'mascot', 'modular'] as const;
 export type IdeaType = (typeof IDEA_TYPES)[number];
 
 export const IDEA_TYPE_GUIDANCE: Record<IdeaType, string> = {
-  'literal-symbol': 'A simplified, recognizable object or creature that directly represents what the brand does.',
+  'literal-symbol': 'One object or creature from the brand world, reduced to an iconic solid silhouette with an unexpected angle or reduction. Never a stock icon.',
   'abstract-geometric': 'An abstract mark built from a few geometric shapes that evokes the brand feeling rather than depicting an object.',
-  lettermark: "A monogram built from the brand name's first letter (or two initials), shaped to carry the brand idea.",
-  'negative-space': 'A mark where a second meaningful shape appears in the empty space inside or between the main forms.',
+  lettermark: "A custom bold glyph of the brand name's first letter (or two initials) with ONE distinctive modification. It must still read clearly as the letter.",
+  'negative-space': 'A plain bold silhouette with ONE simple shape cut out of it (an arrow, a letter, a drop, a circle), cut large enough to read at small sizes. Describe the cut-out shape explicitly.',
+  monoline: 'One continuous line drawing of a single subject in an even, thick stroke (about 8% of the mark width) with rounded ends and corners. Clean outline only, no fills.',
+  mascot: 'A deliberate brand character (creature, person or object) with one quirky attitude, built from simple geometric shapes with bold uniform outlines and solid fills.',
+  modular: 'A mark built from one repeated module: parallel stripes or rays, stacked layers, a cluster of dots, concentric rings, or a circle cut into segments.',
 };
 
 export interface Recipe {

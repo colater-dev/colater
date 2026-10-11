@@ -35,7 +35,7 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     const deps: RoundDeps = {
       db, credits,
       generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, stickerSurface: 'concrete wall', typeSample: { headline: 'h', body: 'b' } }),
-      renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png' }; },
+      renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png', qa: { score: 7, hasWords: false, hasTextureOrShading: false, tooDetailed: false, mergesSeveralIdeas: false, resemblesHateSymbol: false, fix: '' } }; },
       uploadMark: async () => 'https://r2.example/mark.png',
       pickFont: async () => 'Caprasimo',
       stickerBackground: async surface => {
@@ -97,5 +97,11 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     const d = (await db.doc(`${base}/d0`).get()).data()!;
     expect(d.status).toBe('ready');
     expect(d.stickerBg).toBeUndefined();
+  });
+
+  it('keeps the quality check verdict on the direction for later analysis', async () => {
+    const { base } = await setup();
+    const d = (await db.doc(`${base}/d0`).get()).data()!;
+    expect(d.markQa.score).toBe(7);
   });
 });

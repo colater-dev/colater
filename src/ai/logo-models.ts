@@ -19,15 +19,18 @@ export type LogoProvider = keyof typeof LOGO_MODELS;
 
 export const DEFAULT_LOGO_PROVIDER: LogoProvider = 'recraft';
 
+export const LOGO_STYLE_RULE =
+  'Flat vector logo mark, centered with generous white margin, filling about 60% of the canvas. Confident, simple, precise geometry with consistent stroke weights and optical balance, like a mark from a curated logo gallery. No words or text.';
+
 export const BLACK_ON_WHITE_RULE =
-  'Solid black logo mark on a plain pure white background. No other colors, no gradients, no shadows, no texture, no border or frame.';
+  'Solid pure black (#000000) logo mark on a plain pure white background. No grey, no other colors, no gradients, no shadows, no texture, no brush strokes, no border or frame.';
 
 export function isLogoProvider(value: unknown): value is LogoProvider {
   return typeof value === 'string' && Object.prototype.hasOwnProperty.call(LOGO_MODELS, value);
 }
 
 export function buildLogoModelInput(provider: LogoProvider, prompt: string): Record<string, unknown> {
-  const fullPrompt = `${prompt} ${BLACK_ON_WHITE_RULE}`;
+  const fullPrompt = `${prompt} ${LOGO_STYLE_RULE} ${BLACK_ON_WHITE_RULE}`;
 
   switch (provider) {
     case 'recraft':

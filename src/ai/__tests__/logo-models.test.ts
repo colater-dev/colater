@@ -3,6 +3,7 @@ import {
   LOGO_MODELS,
   DEFAULT_LOGO_PROVIDER,
   BLACK_ON_WHITE_RULE,
+  LOGO_STYLE_RULE,
   isLogoProvider,
   buildLogoModelInput,
 } from '../logo-models';
@@ -30,16 +31,22 @@ describe('logo model registry', () => {
 });
 
 describe('buildLogoModelInput', () => {
-  it('appends the black-on-white rule to every prompt', () => {
+  it('appends the style rule and the black-on-white rule to every prompt', () => {
     for (const provider of Object.keys(LOGO_MODELS) as (keyof typeof LOGO_MODELS)[]) {
       const input = buildLogoModelInput(provider, 'A folded paper crane');
-      expect(input.prompt).toBe(`A folded paper crane ${BLACK_ON_WHITE_RULE}`);
+      expect(input.prompt).toBe(`A folded paper crane ${LOGO_STYLE_RULE} ${BLACK_ON_WHITE_RULE}`);
     }
+  });
+
+  it('the style rule asks for a confident, simple, gallery-quality vector mark', () => {
+    expect(LOGO_STYLE_RULE).toMatch(/vector/i);
+    expect(LOGO_STYLE_RULE).toMatch(/centered/i);
+    expect(BLACK_ON_WHITE_RULE).toMatch(/no grey/i);
   });
 
   it('forces Recraft to a black palette on a white background', () => {
     expect(buildLogoModelInput('recraft', 'p')).toEqual({
-      prompt: `p ${BLACK_ON_WHITE_RULE}`,
+      prompt: `p ${LOGO_STYLE_RULE} ${BLACK_ON_WHITE_RULE}`,
       image_size: 'square_hd',
       colors: [BLACK],
       background_color: WHITE,
@@ -48,7 +55,7 @@ describe('buildLogoModelInput', () => {
 
   it('asks GPT Image for an opaque square PNG', () => {
     expect(buildLogoModelInput('gpt-image', 'p')).toEqual({
-      prompt: `p ${BLACK_ON_WHITE_RULE}`,
+      prompt: `p ${LOGO_STYLE_RULE} ${BLACK_ON_WHITE_RULE}`,
       image_size: '1024x1024',
       background: 'opaque',
       output_format: 'png',
@@ -57,7 +64,7 @@ describe('buildLogoModelInput', () => {
 
   it('puts the black-on-white rule in Nano Banana system prompt', () => {
     expect(buildLogoModelInput('nano-banana', 'p')).toEqual({
-      prompt: `p ${BLACK_ON_WHITE_RULE}`,
+      prompt: `p ${LOGO_STYLE_RULE} ${BLACK_ON_WHITE_RULE}`,
       aspect_ratio: '1:1',
       output_format: 'png',
       system_prompt: BLACK_ON_WHITE_RULE,

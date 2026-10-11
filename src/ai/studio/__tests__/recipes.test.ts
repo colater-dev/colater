@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickRecipes, IDEA_TYPES } from '../recipes';
+import { pickRecipes, IDEA_TYPES, IDEA_TYPE_GUIDANCE } from '../recipes';
 import { LOGO_MODELS } from '@/ai/logo-models';
 
 function seeded(seed: number) {
@@ -34,5 +34,17 @@ describe('pickRecipes', () => {
       expect(r).toHaveLength(1);
       expect(recent.some(x => x.ideaType === r[0].ideaType && x.model === r[0].model)).toBe(false);
     }
+  });
+});
+
+describe('idea types', () => {
+  it('include monoline, mascot and modular constructions alongside the originals', () => {
+    for (const t of ['literal-symbol', 'abstract-geometric', 'lettermark', 'negative-space', 'monoline', 'mascot', 'modular']) expect(IDEA_TYPES).toContain(t);
+  });
+  it('only the mascot type invites a character with a face', () => {
+    expect(IDEA_TYPE_GUIDANCE.mascot).toMatch(/character/i);
+    expect(IDEA_TYPE_GUIDANCE.monoline).toMatch(/even|uniform/i);
+    expect(IDEA_TYPE_GUIDANCE.monoline).toMatch(/8%/);
+    expect(IDEA_TYPE_GUIDANCE.modular).toMatch(/stripes|dots|layers/i);
   });
 });

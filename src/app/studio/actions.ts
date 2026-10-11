@@ -14,6 +14,9 @@ import { jevEvaluate } from '@/ai/jev';
 import { pickRecipes } from '@/ai/studio/recipes';
 import { generateDirectionConcept } from '@/ai/studio/direction-concept';
 import { renderMark } from '@/ai/studio/render-mark';
+import type { LogoProvider } from '@/ai/logo-models';
+import { cleanMark } from '@/ai/studio/mark-cleanup';
+import { checkMark, renderCheckedMark } from '@/ai/studio/mark-qa';
 import { pickFont } from '@/ai/studio/pick-font';
 import { uploadBufferToR2 } from '@/lib/r2-server';
 import { runRound } from '@/ai/studio/run-round';
@@ -80,6 +83,10 @@ export async function createStudioBrand(idToken: string, input: z.infer<typeof B
 
 const ID = /^[A-Za-z0-9_-]{8,64}$/;
 
+/** Render, clean to pure black on white, and quality-check (one retry) every Studio mark. */
+const renderGoodMark = (provider: LogoProvider, prompt: string) =>
+  renderCheckedMark({ render: renderMark, clean: i => cleanMark(i.buffer), check: checkMark }, provider, prompt);
+
 export async function startRound(
   idToken: string,
   brandId: string,
@@ -104,9 +111,11 @@ export async function startRound(
       : undefined;
 
     const count = options.count === 1 ? 1 : 3;
-    const recent = count === 1
-      ? (await brandRef.collection('directions').orderBy('createdAt', 'desc').limit(6).get()).docs.map(d => d.data().recipe).filter(Boolean)
-      : [];
+    // Recent directions: their recipes are avoided for single new directions, and their ideas are
+    // shown to the concept writer so the new one goes somewhere different.
+    const recentDocs = (await brandRef.collection('directions').orderBy('createdAt', 'desc').limit(12).get()).docs.map(d => d.data());
+    const recent = count === 1 ? recentDocs.slice(0, 6).map(d => d.recipe).filter(Boolean) : [];
+    const avoidIdeas: string[] = recentDocs.map(d => d.concept?.idea).filter((i): i is string => typeof i === 'string' && i !== seedIdea);
 
     let created;
     try {
@@ -130,7 +139,7 @@ export async function startRound(
           db: adminDb,
           credits,
           generateConcept: generateDirectionConcept,
-          renderMark,
+          renderMark: renderGoodMark,
           uploadMark: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
           pickFont,
           choosePalette: args => choosePalette(args),
@@ -138,7 +147,7 @@ export async function startRound(
         },
         {
           uid, brandId, roundId: clientRoundId, chargeKey,
-          base: { name: brand.latestName, pitch: brand.latestElevatorPitch, audienceTags: brand.audienceTags ?? [], styleTags: brand.styleTags ?? [], feedbackChips, seedIdea },
+          base: { name: brand.latestName, pitch: brand.latestElevatorPitch, audienceTags: brand.audienceTags ?? [], styleTags: brand.styleTags ?? [], feedbackChips, seedIdea, avoidIdeas },
           directions,
         }
       )
@@ -211,7 +220,7 @@ export async function generateSlide(
         {
           db: adminDb, credits, choosePalette: args => choosePalette(args), generateVoice, vectorizeMark,
           upload: (buffer, contentType, owner) => uploadBufferToR2(buffer, contentType, `studio/${owner}`),
-          generateConcept: generateDirectionConcept, renderMark, pickFont,
+          generateConcept: generateDirectionConcept, renderMark: renderGoodMark, pickFont,
         },
         {
           uid, brandId, directionId, kind, chargeKey: req.chargeKey, cost: req.cost, feedback: cleanFeedback,

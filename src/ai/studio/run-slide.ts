@@ -4,6 +4,7 @@ import type { ServerCredits } from '@/lib/server-credits';
 import type { GenerateKind, PaletteColor } from '@/features/studio/types';
 import type { DirectionBrief, DirectionConcept } from './direction-concept';
 import type { SlideBrief } from './palette';
+import type { MarkQa } from './mark-qa';
 
 export interface SlideDeps {
   db: Firestore;
@@ -13,7 +14,7 @@ export interface SlideDeps {
   vectorizeMark(url: string): Promise<{ buffer: Buffer; contentType: string }>;
   upload(buffer: Buffer, contentType: string, uid: string): Promise<string>;
   generateConcept(b: DirectionBrief): Promise<DirectionConcept>;
-  renderMark(provider: LogoProvider, prompt: string): Promise<{ buffer: Buffer; contentType: string }>;
+  renderMark(provider: LogoProvider, prompt: string): Promise<{ buffer: Buffer; contentType: string; qa?: MarkQa }>;
   pickFont(state: object, exclude?: string[]): Promise<string>;
 }
 
@@ -72,7 +73,7 @@ export async function runSlide(deps: SlideDeps, job: SlideJob): Promise<void> {
         const image = await deps.renderMark(d.recipe.model, concept.markPrompt);
         const markUrl = await deps.upload(image.buffer, image.contentType, job.uid);
         // Concept and mark change together, so a failed redo never pairs a new idea with the old mark.
-        await ref.update({ status: 'ready', markUrl, concept, redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
+        await ref.update({ status: 'ready', markUrl, concept, markQa: image.qa ?? FieldValue.delete(), redoError: FieldValue.delete(), 'slides.vector': FieldValue.delete(), updatedAt: now() });
         return;
       }
       case 'lockup': {
