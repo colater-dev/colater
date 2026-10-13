@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { ColaterWordmark } from './colater-wordmark';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -87,14 +87,7 @@ export function AppHeader({ onMenuClick, isSidebarOpen }: AppHeaderProps) {
                     <Menu animate={isSidebarOpen} className="h-5 w-5 text-black" />
                 </button>
                 <Link href="/dashboard" className="cursor-pointer">
-                    <Image
-                        src="/colater.png"
-                        alt="Colater"
-                        width={120}
-                        height={36}
-                        className="h-8 w-auto"
-                        priority
-                    />
+                    <ColaterWordmark priority />
                 </Link>
                 {user && (brands && brands.length > 0 || currentBrandId === 'new') && (
                     <div className="ml-2">

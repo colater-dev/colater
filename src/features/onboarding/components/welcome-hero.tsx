@@ -1,91 +1,89 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, Target, Palette } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface WelcomeHeroProps {
     ctaButton?: ReactNode;
 }
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const VALUE_PROPS = [
+    {
+        label: 'Position',
+        title: 'Clarify Your Position',
+        body: 'Define your brand strategy, target audience, and unique value proposition with AI guidance.',
+    },
+    {
+        label: 'Generate',
+        title: 'Generate Visual Assets',
+        body: 'Create logos, color palettes, presentations, and mockups that reflect your brand identity.',
+    },
+    {
+        label: 'Keep',
+        title: 'Stay Consistent',
+        body: 'Maintain brand consistency across web, apps, and all customer touchpoints automatically.',
+    },
+];
+
 export function WelcomeHero({ ctaButton }: WelcomeHeroProps) {
     return (
         <div className="space-y-8 max-w-4xl mx-auto text-center">
-            {/* Main Headline */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: EASE }}
             >
                 <h1 className="text-5xl md:text-7xl font-black tracking-tight text-foreground leading-[1.1]">
                     Clarify your brand.
                     <br />
-                    <span className="text-primary">Generate on-brand assets.</span>
+                    <span className="text-muted-foreground">Generate on-brand assets.</span>
                 </h1>
             </motion.div>
 
-            {/* Subheadline */}
             <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
                 className="text-xl md:text-2xl text-muted-foreground font-medium leading-relaxed max-w-3xl mx-auto"
             >
                 Agentic AI that helps you define your positioning, create professional visual assets,
                 and maintain brand consistency across every touchpoint.
             </motion.p>
 
-            {/* CTA Button */}
             {ctaButton && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2, duration: 0.6, type: "spring" }}
+                    transition={{ delay: 0.2, duration: 0.6, type: 'spring' }}
                     className="pt-2"
                 >
                     {ctaButton}
                 </motion.div>
             )}
 
-            {/* Value Props */}
+            {/* Value props as Studio-style slots: dashed frame, pill label, ink on paper. */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8"
+                transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8"
             >
-                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/50 transition-all">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Target className="w-6 h-6 text-primary" />
+                {VALUE_PROPS.map((prop, i) => (
+                    <div
+                        key={prop.label}
+                        className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-foreground/30 bg-card p-6 text-left transition-colors hover:border-foreground"
+                    >
+                        <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-medium text-background">
+                            {i + 1} · {prop.label}
+                        </span>
+                        <h3 className="font-bold text-lg">{prop.title}</h3>
+                        <p className="text-sm text-muted-foreground">{prop.body}</p>
                     </div>
-                    <h3 className="font-bold text-lg">Clarify Your Position</h3>
-                    <p className="text-sm text-muted-foreground text-center">
-                        Define your brand strategy, target audience, and unique value proposition with AI guidance.
-                    </p>
-                </div>
-
-                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/50 transition-all">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Sparkles className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg">Generate Visual Assets</h3>
-                    <p className="text-sm text-muted-foreground text-center">
-                        Create logos, color palettes, presentations, and mockups that reflect your brand identity.
-                    </p>
-                </div>
-
-                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/50 transition-all">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Palette className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg">Stay Consistent</h3>
-                    <p className="text-sm text-muted-foreground text-center">
-                        Maintain brand consistency across web, apps, and all customer touchpoints automatically.
-                    </p>
-                </div>
+                ))}
             </motion.div>
 
-            {/* Additional Context */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

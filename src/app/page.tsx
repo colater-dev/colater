@@ -1,20 +1,15 @@
-
 import { Metadata } from 'next';
 import { LandingPageClient } from './landing-page-client';
 
+const title = 'Clarify your brand. Generate on-brand assets.';
+const description =
+  'Agentic AI that helps you define your positioning, create professional visual assets, and keep every touchpoint on-brand.';
+
 export const metadata: Metadata = {
-  title: 'Design Your Brand Identity in Seconds',
-  description: 'AI-powered logo generation, vector exports, and instant mockups. The all-in-one tool for modern brands.',
-  openGraph: {
-    title: 'Design Your Brand Identity in Seconds | Colater',
-    description: 'AI-powered logo generation, vector exports, and instant mockups. The all-in-one tool for modern brands.',
-    images: ['https://colater.ai/og-image.png'],
-  },
-  twitter: {
-    title: 'Design Your Brand Identity in Seconds | Colater',
-    description: 'AI-powered logo generation, vector exports, and instant mockups. The all-in-one tool for modern brands.',
-    images: ['https://colater.ai/og-image.png'],
-  },
+  title,
+  description,
+  openGraph: { title: `${title} | Colater`, description },
+  twitter: { card: 'summary_large_image', title: `${title} | Colater`, description },
 };
 
 export default function Home() {

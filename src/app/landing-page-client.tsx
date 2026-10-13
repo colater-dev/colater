@@ -7,8 +7,10 @@ import { useAuth, useUser, initiateSmartGoogleSignIn, handleRedirectResult, USE_
 import { DevEmailLogin } from '@/features/auth/components/dev-email-login';
 import { WelcomeHero } from '@/features/onboarding/components/welcome-hero';
 import { FeaturesSection } from '@/features/onboarding/components/features-section';
+import { SampleLockups } from '@/features/onboarding/components/sample-lockups';
 import { ArrowRight, Loader2, LayoutDashboard } from "lucide-react";
 import Link from 'next/link';
+import { ColaterWordmark } from '@/components/layout/colater-wordmark';
 
 export function LandingPageClient() {
     const auth = useAuth();
@@ -58,12 +60,9 @@ export function LandingPageClient() {
             {/* Top Navigation for Landing Page */}
             <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <span className="text-primary-foreground font-bold text-xl">C</span>
-                        </div>
-                        <span className="font-bold text-xl tracking-tight">Colater</span>
-                    </div>
+                    <Link href="/" aria-label="Colater home">
+                        <ColaterWordmark priority className="h-7" />
+                    </Link>
                     {user ? (
                         <Button asChild variant="ghost" size="sm" className="gap-2">
                             <Link href="/dashboard">
@@ -97,6 +96,8 @@ export function LandingPageClient() {
                 />
 
                 {USE_FIREBASE_EMULATORS && !user && <DevEmailLogin />}
+
+                <SampleLockups />
 
                 {/* Features Section */}
                 <FeaturesSection />
