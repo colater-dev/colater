@@ -7,6 +7,7 @@ export const MarkQaSchema = z.object({
   hasWords: z.boolean().describe('Contains words or more than two letters.'),
   hasTextureOrShading: z.boolean().describe('Has texture, brush strokes, grain, hatching, shading or gradients instead of flat fills.'),
   tooDetailed: z.boolean().describe('Is an illustration or scene with small details that would be lost at 16px.'),
+  tooThin: z.boolean().describe('Strokes, gaps or cut-outs are so thin (under about a tenth of the mark width) that the mark looks faint or breaks apart at 32px.'),
   mergesSeveralIdeas: z.boolean().describe('Crams several objects or metaphors together instead of one clear idea.'),
   resemblesHateSymbol: z.boolean().describe('Could be read as a swastika or another hate or extremist symbol.'),
   fix: z.string().describe('One short instruction that would most improve the next attempt, or empty.'),
@@ -19,6 +20,7 @@ const FLAGS: [keyof MarkQa, string][] = [
   ['hasWords', 'contains words'],
   ['hasTextureOrShading', 'has texture or shading'],
   ['tooDetailed', 'too detailed to read small'],
+  ['tooThin', 'strokes too thin'],
   ['mergesSeveralIdeas', 'merges several ideas'],
   ['resemblesHateSymbol', 'resembles a hate symbol'],
 ];

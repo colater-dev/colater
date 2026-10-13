@@ -91,7 +91,7 @@ export function useLockup({ rowRef, layout = 'horizontal', markUrl, markColor, f
   const [scale, setScale] = useState(1);
 
   const shape = { aspect: mark?.aspect ?? 1, density: mark?.density ?? 0.5 };
-  const dims = layout === 'stacked' ? stackedLayout(shape) : lockupLayout(shape);
+  const dims = layout === 'stacked' ? stackedLayout(shape) : lockupLayout({ ...shape, nameLength: text.length });
   const cap = metrics.cap; // cap height in em
 
   useLayoutEffect(() => {

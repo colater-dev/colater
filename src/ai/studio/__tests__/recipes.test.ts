@@ -44,7 +44,7 @@ describe('idea types', () => {
   it('only the mascot type invites a character with a face', () => {
     expect(IDEA_TYPE_GUIDANCE.mascot).toMatch(/character/i);
     expect(IDEA_TYPE_GUIDANCE.monoline).toMatch(/even|uniform/i);
-    expect(IDEA_TYPE_GUIDANCE.monoline).toMatch(/8%/);
+    expect(IDEA_TYPE_GUIDANCE.monoline).toMatch(/10-12%/);
     expect(IDEA_TYPE_GUIDANCE.modular).toMatch(/stripes|dots|layers/i);
   });
 });

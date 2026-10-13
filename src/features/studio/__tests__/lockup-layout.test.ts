@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lockupLayout, stackedLayout, capCenterShift, capTopInset, fitScale, fitBoxScale, nextLockupLayout } from '../lockup-layout';
+import { lockupLayout, stackedLayout, sparseBoost, nameBoost, capCenterShift, capTopInset, fitScale, fitBoxScale, nextLockupLayout, defaultLockupLayouts } from '../lockup-layout';
 
 const solid = 0.6;
 
@@ -16,19 +16,35 @@ describe('lockupLayout (units: cap heights)', () => {
     expect(wide.markHeight).toBeLessThan(sq.markHeight);
     expect(wide.markWidth).toBeGreaterThan(sq.markWidth);
   });
-  it('a tall mark is taller, but never more than 2.4 cap heights', () => {
+  it('a tall mark is taller, but never more than 2.8 cap heights', () => {
     expect(lockupLayout({ aspect: 0.6, density: solid }).markHeight).toBeGreaterThan(1.8);
-    expect(lockupLayout({ aspect: 0.2, density: solid }).markHeight).toBe(2.4);
+    expect(lockupLayout({ aspect: 0.2, density: solid }).markHeight).toBe(2.8);
   });
-  it('a very wide mark never gets shorter than 1.1 cap heights or wider than 4.5', () => {
+  it('a very wide mark never gets shorter than 1.3 cap heights or wider than 5.5', () => {
     const l = lockupLayout({ aspect: 3, density: solid });
-    expect(l.markHeight).toBeGreaterThanOrEqual(1.1);
-    expect(lockupLayout({ aspect: 8, density: solid }).markWidth).toBeLessThanOrEqual(4.5);
+    expect(l.markHeight).toBeGreaterThanOrEqual(1.3);
+    expect(lockupLayout({ aspect: 8, density: solid }).markWidth).toBeLessThanOrEqual(5.5);
   });
-  it('a sparse line mark is drawn a little larger than a solid one', () => {
+  it('a sparse line mark is drawn larger than a solid one, up to 40%', () => {
     const sparse = lockupLayout({ aspect: 1, density: 0.15 }).markHeight;
-    expect(sparse).toBeGreaterThan(1.8);
-    expect(sparse).toBeLessThanOrEqual(1.8 * 1.15 + 1e-9);
+    expect(sparse).toBeGreaterThan(1.8 * 1.3);
+    expect(sparse).toBeLessThanOrEqual(1.8 * 1.4 + 1e-9);
+    expect(sparseBoost(0.9)).toBe(1);
+    expect(sparseBoost(0.05)).toBe(1.4);
+  });
+  it('a wide sparse mark (a 3:1 monoline animal) comes out clearly bigger than before', () => {
+    const l = lockupLayout({ aspect: 3.14, density: 0.24, nameLength: 17 });
+    expect(l.markHeight).toBeGreaterThan(1.6);
+    expect(l.markWidth).toBeLessThanOrEqual(5.5);
+  });
+  it('long names get a bigger mark so it is not a dot beside the word', () => {
+    expect(nameBoost(8)).toBe(1);
+    expect(nameBoost(4)).toBe(1);
+    expect(nameBoost(18)).toBeCloseTo(1.3, 5);
+    expect(nameBoost(40)).toBe(1.3);
+    const short = lockupLayout({ aspect: 1, density: solid, nameLength: 8 }).markHeight;
+    const long = lockupLayout({ aspect: 1, density: solid, nameLength: 18 }).markHeight;
+    expect(long).toBeCloseTo(short * 1.3, 5);
   });
 });
 
@@ -79,6 +95,14 @@ describe('nextLockupLayout', () => {
     expect(nextLockupLayout('mark')).toBe('horizontal');
     expect(nextLockupLayout('horizontal')).toBe('stacked');
     expect(nextLockupLayout('stacked')).toBe('mark');
+  });
+});
+
+describe('defaultLockupLayouts', () => {
+  it('starts short names on mark + horizontal and long names on mark + stacked', () => {
+    expect(defaultLockupLayouts('Tidepool')).toEqual(['mark', 'horizontal']);
+    expect(defaultLockupLayouts('Quiet Art Movement')).toEqual(['mark', 'stacked']);
+    expect(defaultLockupLayouts('  Synthetic Clothes  ')).toEqual(['mark', 'stacked']);
   });
 });
 

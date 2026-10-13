@@ -1,16 +1,35 @@
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
- * Mark size and gap for a horizontal lockup, in units of the name's cap height.
- * Marks are sized to a similar optical area (wide marks shorter, tall marks taller),
- * and sparse line marks get a small boost so they don't look weaker than solid ones.
+ * Sparse marks (outlines, monolines, thin modules) carry less ink per area than solid ones, so
+ * at equal size they look weaker. Measured marks range from ~0.13 (a thin ring) to ~0.9 density;
+ * this grows the sparsest ones by up to 40%.
  */
-export function lockupLayout({ aspect, density }: { aspect: number; density: number }): { markHeight: number; markWidth: number; gap: number } {
-  const boost = clamp(1 + (0.45 - density) * 0.5, 1, 1.15);
-  let markHeight = clamp((1.8 * boost) / Math.sqrt(aspect), 1.1, 2.4);
+export function sparseBoost(density: number): number {
+  return clamp(1 + (0.45 - density) * 1.2, 1, 1.4);
+}
+
+/**
+ * Long names make the mark look like an afterthought in a horizontal lockup: the row is fitted
+ * to the slide, so a wide name shrinks everything and the mark ends up a small dot beside a
+ * long word. Names past 8 characters get a bigger mark, up to 30% for 18+ characters.
+ */
+export function nameBoost(nameLength: number): number {
+  return clamp(1 + (nameLength - 8) * 0.03, 1, 1.3);
+}
+
+/**
+ * Mark size and gap for a horizontal lockup, in units of the name's cap height.
+ * Marks are sized to a similar optical area (wide marks shorter, tall marks taller), with boosts
+ * for sparse marks and long names. Wide marks never drop below 1.3 cap heights: a 3:1 monoline
+ * animal at one cap height reads as a smudge.
+ */
+export function lockupLayout({ aspect, density, nameLength = 8 }: { aspect: number; density: number; nameLength?: number }): { markHeight: number; markWidth: number; gap: number } {
+  const boost = sparseBoost(density) * nameBoost(nameLength);
+  let markHeight = clamp((1.8 * boost) / Math.sqrt(aspect), 1.3, 2.8);
   let markWidth = markHeight * aspect;
-  if (markWidth > 4.5) {
-    markWidth = 4.5;
+  if (markWidth > 5.5) {
+    markWidth = 5.5;
     markHeight = markWidth / aspect;
   }
   return { markHeight, markWidth, gap: 0.6 };
@@ -32,7 +51,7 @@ export function fitScale(contentWidth: number, availableWidth: number, maxGrow =
 
 /** Mark-over-name lockup in cap heights: the mark gets the full width, so it can be larger. */
 export function stackedLayout({ aspect, density }: { aspect: number; density: number }): { markHeight: number; markWidth: number; gap: number } {
-  const boost = clamp(1 + (0.45 - density) * 0.5, 1, 1.15);
+  const boost = sparseBoost(density);
   let markHeight = clamp((3.2 * boost) / Math.sqrt(aspect), 2, 4.2);
   let markWidth = markHeight * aspect;
   if (markWidth > 7) {
@@ -49,6 +68,14 @@ export function fitBoxScale(content: { width: number; height: number }, availabl
 
 export type LockupLayout = 'mark' | 'horizontal' | 'stacked';
 const LAYOUT_CYCLE: LockupLayout[] = ['mark', 'horizontal', 'stacked'];
+
+/**
+ * Starting layouts for a direction's two lockup slides. A long name beside the mark shrinks the
+ * whole row, so names past 14 characters start stacked instead of horizontal.
+ */
+export function defaultLockupLayouts(name: string): [LockupLayout, LockupLayout] {
+  return ['mark', name.trim().length > 14 ? 'stacked' : 'horizontal'];
+}
 
 export function nextLockupLayout(current: LockupLayout): LockupLayout {
   return LAYOUT_CYCLE[(LAYOUT_CYCLE.indexOf(current) + 1) % LAYOUT_CYCLE.length];

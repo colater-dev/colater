@@ -36,7 +36,7 @@ describe.skipIf(!ON)('runRound (emulator)', () => {
     const deps: RoundDeps = {
       db, credits,
       generateConcept: async b => ({ idea: `idea ${b.recipe.model}`, rationale: 'r', markPrompt: 'p', captions: { mark: 'm', lockup: 'l', inUse: 'u' }, stickerSurface: 'concrete wall', typeSample: { headline: 'h', body: 'b' } }),
-      renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png', qa: { score: 7, hasWords: false, hasTextureOrShading: false, tooDetailed: false, mergesSeveralIdeas: false, resemblesHateSymbol: false, fix: '' } }; },
+      renderMark: async p => { if (p === failModel) throw new Error('Application not found'); return { buffer: Buffer.from('x'), contentType: 'image/png', qa: { score: 7, hasWords: false, hasTextureOrShading: false, tooDetailed: false, tooThin: false, mergesSeveralIdeas: false, resemblesHateSymbol: false, fix: '' } }; },
       uploadMark: async () => 'https://r2.example/mark.png',
       pickFont: async () => 'Caprasimo',
       stickerBackground: async surface => {

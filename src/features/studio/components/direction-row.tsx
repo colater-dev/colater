@@ -19,7 +19,7 @@ import { SocialSlide } from './slides/social-slide';
 import { VoiceSlide } from './slides/voice-slide';
 import { VectorSlide } from './slides/vector-slide';
 import { stageLabel } from '../stage-label';
-import { nextLockupLayout, type LockupLayout } from '../lockup-layout';
+import { defaultLockupLayouts, nextLockupLayout, type LockupLayout } from '../lockup-layout';
 import { nextMotionPreset, pickMotionPreset } from '../motion-presets';
 import { GENERATE_COSTS, type GenerateKind, type PaidSlideKind, type StudioDirection } from '../types';
 
@@ -45,7 +45,7 @@ export function DirectionRow({ direction, brandName, onVariations, onToggleFavor
   const colorPending = slides.color?.status === 'pending' || busy('color');
   const voice = slides.voice?.status === 'ready' ? slides.voice : undefined;
   // Slides 1 and 2 are the same mark/lockup in different layouts; each click moves one on.
-  const [layouts, setLayouts] = useState<[LockupLayout, LockupLayout]>(['mark', 'horizontal']);
+  const [layouts, setLayouts] = useState<[LockupLayout, LockupLayout]>(() => defaultLockupLayouts(brandName));
   const cycle = (i: 0 | 1) => setLayouts(ls => (i === 0 ? [nextLockupLayout(ls[0]), ls[1]] : [ls[0], nextLockupLayout(ls[1])]));
   const [motionPreset, setMotionPreset] = useState(() => pickMotionPreset(direction.id));
   const lockupCaption = (l: LockupLayout) => (l === 'mark' ? concept?.captions.mark : concept?.captions.lockup);

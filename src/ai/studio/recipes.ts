@@ -8,7 +8,7 @@ export const IDEA_TYPE_GUIDANCE: Record<IdeaType, string> = {
   'abstract-geometric': 'An abstract mark built from a few geometric shapes that evokes the brand feeling rather than depicting an object.',
   lettermark: "A custom bold glyph of the brand name's first letter (or two initials) with ONE distinctive modification. It must still read clearly as the letter.",
   'negative-space': 'A plain bold silhouette with ONE simple shape cut out of it (an arrow, a letter, a drop, a circle), cut large enough to read at small sizes. Describe the cut-out shape explicitly.',
-  monoline: 'One continuous line drawing of a single subject in an even, thick stroke (about 8% of the mark width) with rounded ends and corners. Clean outline only, no fills.',
+  monoline: 'One continuous line drawing of a single subject in an even, thick stroke (10-12% of the mark width) with rounded ends and corners. Clean outline only, no fills.',
   mascot: 'A deliberate brand character (creature, person or object) with one quirky attitude, built from simple geometric shapes with bold uniform outlines and solid fills.',
   modular: 'A mark built from one repeated module: parallel stripes or rays, stacked layers, a cluster of dots, concentric rings, or a circle cut into segments.',
 };

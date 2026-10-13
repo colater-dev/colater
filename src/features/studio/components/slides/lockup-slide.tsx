@@ -10,7 +10,7 @@ import { useLockup } from '../../hooks/use-lockup';
 
 const FIT: Record<LockupLayout, { maxWidth: number; maxHeight: number; maxGrow: number }> = {
   mark: { maxWidth: 0.55, maxHeight: 0.5, maxGrow: 10 },
-  horizontal: { maxWidth: 0.7, maxHeight: 0.6, maxGrow: 1.3 },
+  horizontal: { maxWidth: 0.78, maxHeight: 0.6, maxGrow: 1.3 },
   stacked: { maxWidth: 0.62, maxHeight: 0.72, maxGrow: 1.3 },
 };
 

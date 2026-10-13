@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { qaProblems, renderCheckedMark, type MarkQa } from '../mark-qa';
 
-const good: MarkQa = { score: 8, hasWords: false, hasTextureOrShading: false, tooDetailed: false, mergesSeveralIdeas: false, resemblesHateSymbol: false, fix: '' };
+const good: MarkQa = { score: 8, hasWords: false, hasTextureOrShading: false, tooDetailed: false, tooThin: false, mergesSeveralIdeas: false, resemblesHateSymbol: false, fix: '' };
 const img = (tag: string) => ({ buffer: Buffer.from(tag), contentType: 'image/png' });
 
 describe('qaProblems', () => {
